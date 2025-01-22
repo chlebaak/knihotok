@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
-// Middleware pro ověřování přihlášení uživatele
 router.use((req, res, next) => {
   if (!req.cookies || !req.cookies.user) {
     return res.status(401).json({ error: "Uživatel není přihlášen." });

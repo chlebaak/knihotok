@@ -65,46 +65,40 @@ router.get("/:id", async (req, res) => {
 
     const book = response.data.volumeInfo;
 
-    // Získej větší verzi obálky, pokud je dostupná
     const cover = book.imageLinks?.thumbnail || "";
 
-    // Získej žánry (categories)
     const genres = book.categories || ["No genres available"];
 
-    // Získej prvního autora
     const primaryAuthor = book.authors?.[0] || null;
     let authorDetails = null;
 
-    // Pokud je dostupný autor, získej informace z Wikimedia API
     if (primaryAuthor) {
       try {
         const wikiResponse = await axios.get(
-          "https://cs.wikipedia.org/w/api.php", // Používáme českou Wikipedii
+          "https://cs.wikipedia.org/w/api.php", 
           {
             params: {
               action: "query",
               format: "json",
               titles: primaryAuthor,
               prop: "extracts|pageimages",
-              exintro: true, // Získá pouze úvodní část
-              explaintext: true, // Vrací čistý text
+              exintro: true, 
+              explaintext: true, 
               piprop: "thumbnail",
               pithumbsize: 200,
-              redirects: 1, // Přesměrování na správný název
-              uselang: "cs", // Čeština
+              redirects: 1, 
+              uselang: "cs", 
             },
           }
         );
 
         const pages = wikiResponse.data.query.pages;
-        const pageKey = Object.keys(pages)[0]; // Získej ID stránky
+        const pageKey = Object.keys(pages)[0]; 
         const page = pages[pageKey];
 
         if (pageKey !== "-1") {
-          // Kontrola, zda `extract` existuje
           let summary = page.extract || null;
 
-          // Pokud `extract` chybí, zkusíme celý obsah bez `exintro`
           if (!summary) {
             const fullWikiResponse = await axios.get(
               "https://cs.wikipedia.org/w/api.php",
@@ -128,7 +122,7 @@ router.get("/:id", async (req, res) => {
               fullPage.extract || `Další informace naleznete na Wikipedii.`;
           }
 
-          // Nastav detaily o autorovi
+          // Nastavení detailů o autorovi
           authorDetails = {
             summary: summary,
             thumbnail: page.thumbnail?.source || null,
@@ -149,7 +143,7 @@ router.get("/:id", async (req, res) => {
       console.log("No primary author found for this book.");
     }
 
-    // Odpověď s informacemi o knize a autorovi
+    // Odpověď
     res.json({
       id: response.data.id,
       title: book.title,
@@ -164,7 +158,7 @@ router.get("/:id", async (req, res) => {
       pageCount: book.pageCount || "N/A",
       language: book.language || "N/A",
       genres: genres,
-      authorDetails: authorDetails, // Přidáno podrobnosti o autorovi
+      authorDetails: authorDetails, 
     });
   } catch (error) {
     console.error("Error fetching book details:", error);

@@ -388,8 +388,7 @@ router.post("/:id/downvote", async (req, res) => {
 // Smazání příspěvku (pouze autor)
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const { user_id } = req.body; // Ujistíme se, že dostáváme ID uživatele
-
+  const { user_id } = req.body; 
   if (!user_id) {
     return res.status(401).json({ error: "Uživatel není přihlášen" });
   }
@@ -437,7 +436,6 @@ router.delete("/:id/comments", async (req, res) => {
   }
 
   try {
-    // Ověřit, zda komentář existuje a zda ho napsal přihlášený uživatel
     const commentCheck = await req.db.query(
       "SELECT user_id FROM comments WHERE id = $1",
       [id]
@@ -453,7 +451,6 @@ router.delete("/:id/comments", async (req, res) => {
         .json({ error: "Nemáte oprávnění smazat tento komentář" });
     }
 
-    // Smazání komentáře
     await req.db.query("DELETE FROM comments WHERE id = $1", [id]);
 
     res.json({ message: "Komentář byl úspěšně smazán" });

@@ -2,7 +2,6 @@ const express = require("express");
 const pool = require("../config/db");
 const router = express.Router();
 
-// Middleware pro kontrolu přihlášení
 const authenticateUser = (req, res, next) => {
   const user = req.cookies.user;
   if (!user) {
@@ -21,7 +20,6 @@ router.post("/", authenticateUser, async (req, res) => {
   }
 
   try {
-    // Najdi nebo vlož knihu
     const bookResult = await pool.query(
       "SELECT id FROM books WHERE google_books_id = $1",
       [googleBooksId]
@@ -29,10 +27,8 @@ router.post("/", authenticateUser, async (req, res) => {
 
     let bookId;
     if (bookResult.rows.length > 0) {
-      // Kniha již existuje
       bookId = bookResult.rows[0].id;
     } else {
-      // Vložení nové knihy
       const newBook = await pool.query(
         `INSERT INTO books (google_books_id, title, author, cover_url) 
                  VALUES ($1, $2, $3, $4) 
@@ -42,7 +38,6 @@ router.post("/", authenticateUser, async (req, res) => {
       bookId = newBook.rows[0].id;
     }
 
-    // Přidání recenze
     const review = await pool.query(
       `INSERT INTO reviews (user_id, book_id, rating, comment) 
              VALUES ($1, $2, $3, $4) 
@@ -68,7 +63,6 @@ router.get("/:googleBooksId", async (req, res) => {
     );
 
     if (book.rows.length === 0) {
-      // Pokud kniha neexistuje, vrať prázdný seznam recenzí
       return res.json([]);
     }
 

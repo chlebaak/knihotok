@@ -36,7 +36,7 @@ const SearchBooks = () => {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       searchBooks();
-    }, 300); // Rychlejší debounce
+    }, 300); 
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, type]);

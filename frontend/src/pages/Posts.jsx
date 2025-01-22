@@ -13,7 +13,7 @@ const Posts = () => {
   const [user, setUser] = useState(null);
   const [userVotes, setUserVotes] = useState({});
   const navigate = useNavigate();
-  const maxLength = 200; // Maximální počet znaků pro zkrácení textu
+  const maxLength = 200; 
 
   useEffect(() => {
     axios
@@ -42,7 +42,7 @@ const Posts = () => {
   useEffect(() => {
     let updatedPosts = [...posts];
 
-    // Filtrování podle hledání
+    
     if (searchQuery.trim()) {
       updatedPosts = updatedPosts.filter(
         (post) =>
@@ -81,7 +81,7 @@ const Posts = () => {
 
       const newPostData = response.data;
 
-      // Doplníme username a profile_picture z aktuálně přihlášeného uživatele
+      
       const updatedPost = {
         ...newPostData,
         username: user.username,

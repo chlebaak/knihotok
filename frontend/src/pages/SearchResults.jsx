@@ -5,13 +5,13 @@ import axios from "axios";
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("query") || "";
-  const type = searchParams.get("type") || "title"; // Možnost filtrování podle typu
+  const type = searchParams.get("type") || "title"; 
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (query.length < 3) return; // Zabránění zbytečným requestům při krátkých dotazech
+    if (query.length < 3) return; 
 
     const fetchBooks = async () => {
       setIsLoading(true);
@@ -39,7 +39,7 @@ const SearchResults = () => {
         Výsledky pro &quot;{query}&quot;
       </h1>
 
-      {/* Přepínač mezi hledáním podle názvu a autora */}
+      
       <div className="flex gap-2 mb-4">
         <button
           className={`px-3 py-1 text-sm font-semibold rounded ${
@@ -59,7 +59,7 @@ const SearchResults = () => {
         </button>
       </div>
 
-      {/* Načítání indikátor */}
+      
       {isLoading ? (
         <p className="text-center text-lg">🔄 Načítám knihy...</p>
       ) : books.length > 0 ? (

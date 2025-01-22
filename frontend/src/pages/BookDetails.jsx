@@ -50,7 +50,6 @@ const BookDetails = () => {
           filter: `title="${title}" && approved=true`,
         });
 
-        // Načtení uživatelských dat podle author_zub
         const userIds = reviewsResponse
           .filter((review) => review.author_zub !== null)
           .map((review) => review.author_zub);
@@ -134,7 +133,6 @@ const BookDetails = () => {
       setIsLoggedIn(true);
       setUserId(response.data.id);
 
-      // Po získání uživatelského ID zavoláme fetchBookDetails
       fetchBookDetails(response.data.id);
     } catch (error) {
       console.error("User not logged in:", error);
@@ -171,7 +169,7 @@ const BookDetails = () => {
     const fetchData = async () => {
       await fetchBookDetails();
       await checkAuth();
-      await checkBookStatus(); // Přidání kontroly stavu knihy
+      await checkBookStatus(); 
     };
 
     fetchData();
@@ -207,7 +205,7 @@ const BookDetails = () => {
         reviewData
       );
 
-      await fetchBookDetails(userId); // Aktualizovat recenze po přidání
+      await fetchBookDetails(userId); 
 
       setNewReview({ rating: 5, comment: "" });
       alert("Review successfully added!");
@@ -223,7 +221,7 @@ const BookDetails = () => {
         `https://db.ladislavpokorny.cz/api/collections/reviews/records/${reviewId}`
       );
 
-      await fetchBookDetails(userId); // Aktualizovat recenze po smazání
+      await fetchBookDetails(userId); 
 
       alert("Review deleted successfully.");
     } catch (error) {
@@ -275,7 +273,7 @@ const BookDetails = () => {
       await axios.post(
         "http://localhost:5000/api/user-books",
         {
-          userId: userId, // Změň na dynamické ID uživatele
+          userId: userId, 
           bookId: id,
           listType,
           title: book.title,
@@ -296,7 +294,7 @@ const BookDetails = () => {
     try {
       await axios.delete("http://localhost:5000/api/user-books", {
         data: {
-          userId: 1, // Změň na dynamické ID uživatele
+          userId: 1, 
           bookId: id,
           listType,
         },
@@ -661,7 +659,7 @@ const BookDetails = () => {
                       ))}
                     </div>
 
-                    {/* Jméno autora */}
+                    
                     <p
                       className={`text-base font-semibold transition ${
                         review.authorProfile
@@ -677,15 +675,15 @@ const BookDetails = () => {
                         "Recenze ze spsul knihovny"}
                     </p>
 
-                    {/* Datum recenze */}
+                    
                     <p className="text-sm text-gray-500">
                       {new Date(review.created).toLocaleString()}
                     </p>
 
-                    {/* Text recenze */}
+                   
                     <p className="text-gray-800 mt-2">{review.text}</p>
 
-                    {/* Možnost smazání recenze */}
+                   
                     {isLoggedIn && review.author_zub === userId && (
                       <button
                         onClick={() => handleReviewDelete(review.id)}

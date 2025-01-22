@@ -32,7 +32,7 @@ const Zebricky = () => {
           }))
           .sort((a, b) => b.averageRating - a.averageRating);
 
-        const usedBookIds = new Set(); // Unikátní Google Books ID, abychom zabránili duplicitám
+        const usedBookIds = new Set(); 
 
         const bookDetailsPromises = sortedBooks.map(async (book) => {
           const response = await fetch(
@@ -43,7 +43,7 @@ const Zebricky = () => {
 
           let validBook = null;
 
-          // Hledání prvního unikátního výsledku, který má obálku a není duplicita
+          
           for (const item of items) {
             if (
               item.volumeInfo.imageLinks?.thumbnail &&
@@ -56,7 +56,7 @@ const Zebricky = () => {
 
           if (!validBook) return null;
 
-          usedBookIds.add(validBook.id); // Uložíme ID jako použité
+          usedBookIds.add(validBook.id); 
 
           const bookInfo = validBook.volumeInfo;
 

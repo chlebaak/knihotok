@@ -7,12 +7,12 @@ import { FaArrowUp, FaArrowDown, FaTrash } from "react-icons/fa";
 import pb from "../lib/pocketbase.js";
 
 export default function Profile() {
-  const [activeTab, setActiveTab] = useState("seznamy"); // Výchozí tab
-  const { id } = useParams(); // Získání ID z URL
+  const [activeTab, setActiveTab] = useState("seznamy"); 
+  const { id } = useParams(); 
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  const [canEdit, setCanEdit] = useState(false); // Přidáme kontrolu pro úpravy
+  const [canEdit, setCanEdit] = useState(false); 
   const [favorites, setFavorites] = useState([]);
   const [toRead, setToRead] = useState([]);
   const [formData, setFormData] = useState({
@@ -37,7 +37,7 @@ export default function Profile() {
         );
 
         setUser(response.data.profile);
-        setCanEdit(response.data.canEdit); // Nastavení možnosti editace
+        setCanEdit(response.data.canEdit); 
         setFormData({
           username: response.data.profile.username,
           description: response.data.profile.description || "",
@@ -45,7 +45,7 @@ export default function Profile() {
           created_at: response.data.profile.created_at,
         });
 
-        // Paralelní načtení knih a příspěvků
+        
         await Promise.all([fetchUserBooks(), fetchUserPosts()]);
       } catch (err) {
         setError("Nepodařilo se načíst profil.");
@@ -69,9 +69,9 @@ export default function Profile() {
 
   const fetchUserReviews = async () => {
     try {
-      // Fetch pouze schválených recenzí pro daného uživatele
+      
       const reviews = await pb.collection("reviews").getFullList({
-        filter: `approved=true`, // Vynechání author_zub pro test
+        filter: `approved=true`, 
         expand: "authorProfile",
       });
 
@@ -153,7 +153,7 @@ export default function Profile() {
         }
       );
 
-      // Aktualizace seznamu na frontendu
+      
       if (listType === "favorite") {
         setFavorites(
           favorites.filter((book) => book.google_books_id !== bookId)
@@ -356,17 +356,17 @@ export default function Profile() {
                     key={book.google_books_id}
                     className="relative group w-40 h-72 rounded-lg overflow-hidden shadow-md"
                   >
-                    {/* Obálka knihy jako pozadí */}
+                    
                     <img
                       src={book.cover_url}
                       alt={book.title}
                       className="absolute inset-0 w-full h-full object-cover transform transition duration-300 group-hover:scale-105"
                     />
 
-                    {/* Tmavý gradient pro lepší čitelnost */}
+                    
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
 
-                    {/* Text a tlačítko */}
+                    
                     <div className="absolute bottom-0 left-0 w-full p-3 text-white flex flex-col items-center text-center">
                       <h4 className="text-sm font-semibold leading-tight">
                         <Link
@@ -403,17 +403,17 @@ export default function Profile() {
                     key={book.google_books_id}
                     className="relative group w-40 h-72 rounded-lg overflow-hidden shadow-md"
                   >
-                    {/* Obálka knihy jako pozadí */}
+                    
                     <img
                       src={book.cover_url}
                       alt={book.title}
                       className="absolute inset-0 w-full h-full object-cover transform transition duration-300 group-hover:scale-105"
                     />
 
-                    {/* Tmavý gradient pro lepší čitelnost */}
+                    
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
 
-                    {/* Text a tlačítko */}
+                    
                     <div className="absolute bottom-0 left-0 w-full p-3 text-white flex flex-col items-center text-center">
                       <h4 className="text-sm font-semibold leading-tight">
                         <Link
@@ -451,10 +451,10 @@ export default function Profile() {
                   className="border p-5 rounded-lg mb-6 shadow-md bg-gray-50 cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => navigate(`/posts/${post.id}`)}
                 >
-                  {/* Profilová fotka a uživatelské jméno */}
+                  
                   <div className="flex items-center mb-4">
                     <img
-                      src={post.profile_picture || "/default-avatar.png"} // Defaultní avatar, pokud není profilová fotka
+                      src={post.profile_picture || "/default-avatar.png"} 
                       alt={post.username}
                       className="w-10 h-10 rounded-full border border-gray-300 mr-3"
                     />
@@ -466,12 +466,12 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* Obsah příspěvku */}
+                  
                   <h2 className="text-xl font-semibold text-gray-900 leading-tight mb-2">
                     {post.content}
                   </h2>
 
-                  {/* Upvotes/Downvotes */}
+                  
                   <div className="flex items-center space-x-4 text-gray-600 mt-3">
                     <div className="flex items-center space-x-2">
                       <FaArrowUp className="text-green-500" />

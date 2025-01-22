@@ -8,7 +8,7 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth(); // Přístup k login funkci z AuthContextu
+  const { login } = useAuth(); 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,10 +20,10 @@ export default function Login() {
     setLoading(true);
     setMessage("");
     try {
-      await login(formData); // Volání login funkce z AuthContextu
+      await login(formData); 
       setMessage("Přihlášení bylo úspěšné.");
-      navigate("/"); // Přesměrování na profil
-      window.location.reload(); // Obnovení stránky
+      navigate("/"); 
+      window.location.reload(); 
     } catch (error) {
       setMessage(error.response?.data?.error || "Chyba při přihlášení.");
       console.error("Login error:", error.response || error);

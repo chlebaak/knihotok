@@ -4,7 +4,6 @@ import { AuthProvider } from "./context/authContext";
 import Navbar from "./components/navbar.jsx";
 import Footer from "./components/footer.jsx";
 import Search from "./components/search.jsx";
-import Knihy from "./pages/Knihy.jsx";
 import Domov from "./pages/Domov.jsx";
 import Zebricky from "./pages/Zebricky.jsx";
 import Login from "./pages/LogIn.jsx";
@@ -34,9 +33,7 @@ export default function App() {
         <main className="flex-grow">
           <Routes>
              <Route path="/" element={<Domov />} />
-             <Route path="/Knihy" element={<Knihy />} />
              <Route path="/zebricky" element={<Zebricky />} />
-             <Route path="/Knihy" element={<Knihy />} />
              <Route path="/LogIn" element={<Login />} />
              <Route path="/SignUp" element={<SignUp />} />
              <Route path="/profile/:id" element={<Profil />} />

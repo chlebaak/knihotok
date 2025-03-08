@@ -12,7 +12,7 @@ import Profil from "./pages/Profil.jsx";
 import BookDetails from "./pages/BookDetails.jsx";
 import SearchResults from "./pages/SearchResults.jsx";
 import Posts from "./pages/Posts.jsx";
-import PostDetails from "./pages/PostDetails.jsx";
+import PostDetails from "./pages/postDetails.jsx";
 import Events from "./pages/Events.jsx";
 import Messages from "./pages/Messages.jsx";
 

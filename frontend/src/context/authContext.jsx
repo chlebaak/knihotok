@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/auth/profile",
+          `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/profile`,
           {
             withCredentials: true,
           }
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (formData) => {
     const response = await axios.post(
-      "http://localhost:5000/api/auth/login",
+      `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/login`,
       formData,
       {
         withCredentials: true,
@@ -44,11 +44,11 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/auth/logout",
-        {},
-        {
-          withCredentials: true,
-        }
+      `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/logout`,
+      {},
+      {
+        withCredentials: true,
+      }
       );
       setUser(null); // Vymazání uživatele
     } catch (error) {

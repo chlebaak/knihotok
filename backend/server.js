@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors"); 
-const axios = require("axios");
+const cors = require("cors");
+const axios = require('axios');
 
 const authRoutes = require("./routes/auth");
 const booksRoutes = require("./routes/books");
@@ -10,6 +10,9 @@ const postsRoutes = require("./routes/posts");
 const userBooksRoutes = require("./routes/userBooks");
 const messagesRoutes = require("./routes/messages");
 const userRoutes = require("./routes/users");
+const eventsRoutes = require("./routes/events");
+const rankRoutes = require("./routes/rank");
+
 
 const pool = require("./config/db");
 const app = express();
@@ -17,8 +20,12 @@ const cookieParser = require("cookie-parser");
 
 app.use(
   cors({
-    origin: "http://localhost:5173", 
-    credentials: true, 
+    origin: [process.env.FRONTEND_URL, 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 600
   })
 );
 
@@ -39,6 +46,9 @@ app.use("/api/posts", postsRoutes);
 app.use("/api/user-books", userBooksRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/rank", rankRoutes);
+
 
 // Spuštění serveru
 const PORT = process.env.PORT || 5000;
@@ -59,3 +69,8 @@ async function testConnection() {
 }
 
 testConnection();
+
+
+
+
+

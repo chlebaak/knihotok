@@ -20,10 +20,10 @@ const SearchBooks = () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/books/search",
-        {
-          params: { query, type, limit: 5 },
-        }
+      `${import.meta.env.VITE_API_URL_LOCAL}/api/books/search`,
+      {
+        params: { query, type, limit: 5 },
+      }
       );
       setBooks(response.data);
     } catch (error) {
@@ -31,12 +31,12 @@ const SearchBooks = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+    };
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       searchBooks();
-    }, 300); 
+    }, 300); // Rychlejší debounce
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, type]);

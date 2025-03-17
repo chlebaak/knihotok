@@ -8,20 +8,13 @@ const fs = require("fs");
 const router = express.Router();
 
 
-router.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
-
-
+// Helper funkce pro validaci emailu
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-
+// Helper funkce pro validaci hesla
 const isValidPassword = (password) => {
   return password.length >= 6;
 };
@@ -104,7 +97,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Neplatný email nebo heslo." });
     }
 
-    
+    // Nastavení cookies s údaji o uživateli
     res.cookie(
       "user",
       {
@@ -116,7 +109,7 @@ router.post("/login", async (req, res) => {
       {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 3600000, 
+        maxAge: 3600000, // 1 hodina
       }
     );
 
@@ -147,10 +140,10 @@ const storage = multer.diskStorage({
       "profilePics"
     );
 
-    console.log(uploadPath); 
+    console.log(uploadPath); // Ověření výsledné cesty
 
     if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true }); 
+      fs.mkdirSync(uploadPath, { recursive: true }); // Vytvoří složku, pokud neexistuje
     }
     cb(null, uploadPath);
   },
@@ -211,14 +204,14 @@ router.put(
         return res.status(404).json({ error: "Uživatel nenalezen." });
       }
 
-      
+      // Použití aktuálního profilového obrázku, pokud nebyl nahrán nový
       let profilePicturePath = userResult.rows[0].profile_picture;
 
       if (req.file) {
         profilePicturePath = `/src/assets/profilePics/${req.file.filename}`;
       }
 
-      
+      // Kontrola, zda nové uživatelské jméno již neexistuje
       const usernameCheck = await pool.query(
         "SELECT id FROM users WHERE username = $1 AND id != $2",
         [username, id]

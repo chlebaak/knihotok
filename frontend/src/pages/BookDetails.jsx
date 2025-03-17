@@ -14,6 +14,9 @@ const BookDetails = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userReview, setUserReview] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("success");
 
   const [averageRating, setAverageRating] = useState(0);
   const [ratingsBreakdown, setRatingsBreakdown] = useState([]);
@@ -29,6 +32,13 @@ const BookDetails = () => {
     setIsExpanded((prev) => !prev);
   };
 
+  const showToastMessage = (message, type = "success") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 6000);
+  };
+
   const renderDescription = () => {
     if (isExpanded || book.description.length <= MAX_LENGTH) {
       return book.description;
@@ -36,62 +46,70 @@ const BookDetails = () => {
     return `${book.description.slice(0, MAX_LENGTH)}...`;
   };
 
-  const fetchBookDetails = async (userId) => {
-    try {
-      const bookResponse = await axios.get(
-        `http://localhost:5000/api/books/${id}`
-      );
-      setBook(bookResponse.data);
 
-      const title = bookResponse.data.title;
-      if (title) {
-        // Získání recenzí pro danou knihu
-        const reviewsResponse = await pb.collection("reviews").getFullList({
-          filter: `title="${title}" && approved=true`,
-        });
 
-        const userIds = reviewsResponse
-          .filter((review) => review.author_zub !== null)
-          .map((review) => review.author_zub);
+const fetchBookDetails = async (userId) => {
+  try {
+    const bookResponse = await axios.get(
+      `${import.meta.env.VITE_API_URL_LOCAL}/api/books/${id}`
+    );
+    setBook(bookResponse.data);
 
-        const userProfiles = await Promise.all(
-          userIds.map(async (id) => {
-            const response = await axios.get(
-              `http://localhost:5000/api/users/${id}`
-            );
-            return response.data;
-          })
-        );
+    const title = bookResponse.data.title;
+    if (title) {
+      // Escape special characters in title for the filter
+      const escapedTitle = title.replace(/"/g, '\\"');
+      
+      // Získání recenzí pro danou knihu
+      const reviewsResponse = await pb.collection("reviews").getFullList({
+        filter: `title="${escapedTitle}" && approved=true`,
+      });
 
-        // Přidání profilových informací k recenzím
-        const reviewsWithProfiles = reviewsResponse.map((review) => {
+      // Simplified user data fetching
+      const reviewsWithProfiles = await Promise.all(
+        reviewsResponse.map(async (review) => {
           if (review.author_zub) {
-            const userProfile = userProfiles.find(
-              (profile) => profile.id === review.author_zub
-            );
-            return {
-              ...review,
-              authorProfile: userProfile,
-            };
+            try {
+                const userResponse = await axios.get(
+                `${import.meta.env.VITE_API_URL_LOCAL}/api/users/${review.author_zub}`,
+                { withCredentials: true }
+                );
+              return {
+                ...review,
+                authorProfile: userResponse.data
+              };
+            } catch (error) {
+              console.warn(`Could not fetch user data for review:`, error);
+              return {
+                ...review,
+                authorProfile: null
+              };
+            }
           }
-          return review;
-        });
+          return {
+            ...review,
+            authorProfile: null
+          };
+        })
+      );
 
-        setReviews(reviewsWithProfiles);
-        updateReviewStats(reviewsWithProfiles);
+      setReviews(reviewsWithProfiles);
+      updateReviewStats(reviewsWithProfiles);
 
-        // Pokud je uživatel přihlášen, ověřit, zda již napsal recenzi
-        if (userId) {
-          const existingReview = reviewsWithProfiles.find(
-            (review) => review.author_zub === userId
-          );
-          setUserReview(existingReview || null);
-        }
+      // Check for user's existing review
+      if (userId) {
+        const existingReview = reviewsWithProfiles.find(
+          (review) => review.author_zub === userId
+        );
+        setUserReview(existingReview || null);
       }
-    } catch (error) {
-      console.error("Error fetching book details or reviews:", error);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching book details or reviews:", error);
+  }
+};
+
+
 
   // Funkce na aktualizaci průměrného hodnocení a rozložení
   const updateReviewStats = (reviews) => {
@@ -125,7 +143,7 @@ const BookDetails = () => {
   const checkAuth = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/auth/profile",
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/profile`,
         {
           withCredentials: true,
         }
@@ -133,6 +151,7 @@ const BookDetails = () => {
       setIsLoggedIn(true);
       setUserId(response.data.id);
 
+      // Po získání uživatelského ID zavoláme fetchBookDetails
       fetchBookDetails(response.data.id);
     } catch (error) {
       console.error("User not logged in:", error);
@@ -143,7 +162,7 @@ const BookDetails = () => {
   const checkBookStatus = async () => {
     try {
       const userResponse = await axios.get(
-        "http://localhost:5000/api/auth/profile",
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/profile`,
         {
           withCredentials: true,
         }
@@ -151,7 +170,7 @@ const BookDetails = () => {
       const userId = userResponse.data.id;
 
       const response = await axios.get(
-        `http://localhost:5000/api/user-books/${userId}/${id}`,
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/user-books/${userId}/${id}`,
         {
           withCredentials: true,
         }
@@ -169,7 +188,7 @@ const BookDetails = () => {
     const fetchData = async () => {
       await fetchBookDetails();
       await checkAuth();
-      await checkBookStatus(); 
+      await checkBookStatus(); // Přidání kontroly stavu knihy
     };
 
     fetchData();
@@ -179,12 +198,12 @@ const BookDetails = () => {
     e.preventDefault();
 
     if (!newReview.comment.trim()) {
-      alert("Review text cannot be empty!");
+      showToastMessage("Review text cannot be empty!", "danger");
       return;
     }
 
     if (userReview) {
-      alert("You can only submit one review per book.");
+      showToastMessage("You can only submit one review per book.", "danger");
       return;
     }
 
@@ -205,13 +224,13 @@ const BookDetails = () => {
         reviewData
       );
 
-      await fetchBookDetails(userId); 
+      await fetchBookDetails(userId); // Aktualizovat recenze po přidání
 
       setNewReview({ rating: 5, comment: "" });
-      alert("Review successfully added!");
+      showToastMessage("Review successfully added!");
     } catch (error) {
       console.error("Error submitting review:", error);
-      alert("Failed to submit the review. Please try again.");
+      showToastMessage("Failed to submit the review. Please try again.", "danger");
     }
   };
 
@@ -221,12 +240,12 @@ const BookDetails = () => {
         `https://db.ladislavpokorny.cz/api/collections/reviews/records/${reviewId}`
       );
 
-      await fetchBookDetails(userId); 
+      await fetchBookDetails(userId); // Aktualizovat recenze po smazání
 
-      alert("Review deleted successfully.");
+      showToastMessage("Review deleted successfully.", "danger");
     } catch (error) {
       console.error("Error deleting review:", error);
-      alert("Failed to delete the review. Please try again.");
+      showToastMessage("Failed to delete the review. Please try again.", "danger");
     }
   };
 
@@ -263,7 +282,7 @@ const BookDetails = () => {
   const handleAddToList = async (listType) => {
     try {
       const userResponse = await axios.get(
-        "http://localhost:5000/api/auth/profile",
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/auth/profile`,
         {
           withCredentials: true,
         }
@@ -271,9 +290,9 @@ const BookDetails = () => {
       const userId = userResponse.data.id;
 
       await axios.post(
-        "http://localhost:5000/api/user-books",
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/user-books`,
         {
-          userId: userId, 
+          userId: userId, // Změň na dynamické ID uživatele
           bookId: id,
           listType,
           title: book.title,
@@ -292,13 +311,13 @@ const BookDetails = () => {
 
   const handleRemoveFromList = async (listType) => {
     try {
-      await axios.delete("http://localhost:5000/api/user-books", {
-        data: {
-          userId: 1, 
-          bookId: id,
-          listType,
-        },
-        withCredentials: true,
+      await axios.delete(`${import.meta.env.VITE_API_URL_LOCAL}/api/user-books`, {
+      data: {
+        userId: 1, // Změň na dynamické ID uživatele
+        bookId: id,
+        listType,
+      },
+      withCredentials: true,
       });
 
       if (listType === "favorite") setIsInFavorites(false);
@@ -324,14 +343,127 @@ const BookDetails = () => {
 
   return (
     <div className="p-2">
+      {showToast && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in-down">
+          {toastType === "success" ? (
+            <div
+              id="toast-success"
+              className="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow animate-slide-in"
+              role="alert"
+            >
+              <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg">
+                <svg
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+                </svg>
+                <span className="sr-only">Check icon</span>
+              </div>
+              <div className="ms-3 text-sm font-normal">{toastMessage}</div>
+              <button
+                type="button"
+                className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
+                onClick={() => setShowToast(false)}
+                aria-label="Close"
+              >
+                <span className="sr-only">Close</span>
+                <svg
+                  className="w-3 h-3"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div
+              id="toast-danger"
+              className="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow animate-slide-in"
+              role="alert"
+            >
+              <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg">
+                <svg
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
+                </svg>
+                <span className="sr-only">Error icon</span>
+              </div>
+              <div className="ms-3 text-sm font-normal">{toastMessage}</div>
+              <button
+                type="button"
+                className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
+                onClick={() => setShowToast(false)}
+                aria-label="Close"
+              >
+                <span className="sr-only">Close</span>
+                <svg
+                  className="w-3 h-3"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 14 14"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <Search />
-      <div className="gap-6 py-8 px-6 mx-auto max-w-screen-xl xl:gap-4 md:grid md:grid-cols-3 sm:py-16 lg:px-8 bg-white rounded-lg shadow-xl">
+      <div className="border-gray-200 gap-6 py-8 px-6 mx-auto max-w-screen-xl xl:gap-4 md:grid md:grid-cols-3 sm:py-16 lg:px-8 bg-white rounded-md shadow-xl ">
         {/* Obálka knihy */}
-        <img
-          className="col-span-1 w-2/4 rounded-lg shadow-lg mx-auto md:mx-0 sm:w-2/5 md:w-2/4 sm:mb-4 md:mb-0 border-4 border-[#800020]"
-          src={book.cover}
-          alt={book.title}
-        />
+<div className="col-span-1 w-2/4 mx-auto md:mx-0 sm:w-2/5 md:w-2/4 sm:mb-4 md:mb-0">
+  {book.cover ? (
+    <img
+      className="rounded-lg shadow-lg border-2 border-[#800020] w-full h-auto object-cover"
+      src={book.cover}
+      alt={book.title}
+    />
+  ) : (
+    <div className="rounded-lg shadow-lg border-2 border-[#800020] w-full aspect-[2/3] bg-gradient-to-br from-[#800020]/80 to-[#800020] text-white flex flex-col items-center justify-center p-4">
+      <div className="text-3xl font-bold mb-4 text-center">
+        {book.title
+          .split(' ')
+          .map(word => word[0])
+          .slice(0, 3)
+          .join('')
+          .toUpperCase()}
+      </div>
+      <div className="w-full border-t border-white/30 pt-3 mb-3"></div>
+      <div className="text-xl text-center font-medium">
+        {book.title.length > 30 ? book.title.substring(0, 30) + "..." : book.title}
+      </div>
+      <div className="mt-auto text-sm opacity-80 text-center">
+        {book.author?.split(',')[0] || ""}
+      </div>
+    </div>
+  )}
+</div>
 
         {/* Informace o knize */}
         <div className="col-span-2 mt-4 md:mt-0">
@@ -454,49 +586,58 @@ const BookDetails = () => {
         </div>
       </div>
 
-      {/* Detaily autora */}
       {book.authorDetails && (
-        <div className="mt-8 p-6 bg-white border  rounded-xl shadow-lg">
-          <h2 className="text-xl font-bold text-[#800020] border-b border-[#800020] pb-2 mb-4">
-            O autorovi
-          </h2>
+  <div className="mt-8 p-6 bg-white border rounded-md border-gray-200 shadow-lg max-w-screen-xl mx-auto">
+    <h2 className="text-xl font-bold text-[#800020] border-b border-[#800020] pb-2 mb-4">
+      O autorovi
+    </h2>
 
-          <div className="flex items-center gap-6">
-            {book.authorDetails.thumbnail && (
-              <img
-                src={book.authorDetails.thumbnail}
-                alt="Author"
-                className="w-28 h-32 rounded-lg shadow-md border border-[#800020]"
-              />
-            )}
-            <p className="text-gray-700 leading-relaxed flex-1">
-              {book.authorDetails.summary}
-            </p>
+    <div className="flex items-center gap-6">
+      {book.authorDetails.thumbnail ? (
+        <img
+          src={book.authorDetails.thumbnail}
+          alt="Author"
+          className="w-28 h-32 rounded-lg shadow-md border border-[#800020] object-cover"
+        />
+      ) : (
+        <div className="w-28 h-32 rounded-lg shadow-md border border-[#800020] bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white">
+          <div className="text-xl font-bold">
+            {book.author
+              ?.split(' ')
+              .map(word => word[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase() || "A"}
           </div>
-
-          {book.authorDetails.wikipediaLink && (
-            <a
-              href={book.authorDetails.wikipediaLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-block text-[#800020] hover:text-[#5a0014] font-medium transition-all"
-            >
-              📖 Přečtěte si více na Wikipedii
-            </a>
-          )}
         </div>
       )}
+      <p className="text-gray-700 leading-relaxed flex-1">
+        {book.authorDetails.summary}
+      </p>
+    </div>
 
-      {/* Dynamické hodnocení hvězd */}
-      <div className="mt-8 p-6 bg-white border border-gray-200 rounded-xl shadow-lg">
-        <div className="flex items-center mb-2">
-          {Array.from({ length: 5 }).map((_, index) => (
+    {book.authorDetails.wikipediaLink && (
+      <a
+        href={book.authorDetails.wikipediaLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 inline-block text-[#800020] hover:text-[#5a0014] font-medium transition-all"
+      >
+        📖 Přečtěte si více na Wikipedii
+      </a>
+    )}
+  </div>
+)}
+
+          <div className="mt-8 p-6 bg-white border border-gray-200 rounded-md shadow-lg max-w-screen-xl mx-auto">
+            <div className="flex items-center justify-left mb-2">
+              {Array.from({ length: 5 }).map((_, index) => (
             <svg
               key={index}
               className={`w-7 h-7 ${
                 index < Math.round(averageRating)
-                  ? "text-red-800"
-                  : "text-gray-300"
+              ? "text-red-800"
+              : "text-gray-300"
               } me-1`}
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
@@ -505,18 +646,18 @@ const BookDetails = () => {
             >
               <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
             </svg>
-          ))}
-          <p className="ms-1 text-sm font-medium text-gray-500">
+              ))}
+              <p className="ms-1 text-sm font-medium text-gray-500">
             {averageRating.toFixed(1)} z 5
-          </p>
-        </div>
-        <p className="text-sm font-medium text-gray-500">
-          {totalReviews === 0
+              </p>
+            </div>
+            <p className="text-sm font-medium text-gray-500 text-left">
+              {totalReviews === 0
             ? "No reviews yet"
             : `${totalReviews} ${totalReviews === 1 ? "review" : "reviews"}`}
-        </p>
+            </p>
 
-        {/* Dynamické rozložení hodnocení */}
+            {/* Dynamické rozložení hodnocení */}
         {ratingsBreakdown.map((rating, index) => (
           <div className="flex items-center mt-4" key={index}>
             <span className="text-sm font-medium text-red-800 hover:underline">
@@ -659,7 +800,7 @@ const BookDetails = () => {
                       ))}
                     </div>
 
-                    
+                    {/* Jméno autora */}
                     <p
                       className={`text-base font-semibold transition ${
                         review.authorProfile
@@ -675,15 +816,15 @@ const BookDetails = () => {
                         "Recenze ze spsul knihovny"}
                     </p>
 
-                    
+                    {/* Datum recenze */}
                     <p className="text-sm text-gray-500">
                       {new Date(review.created).toLocaleString()}
                     </p>
 
-                   
+                    {/* Text recenze */}
                     <p className="text-gray-800 mt-2">{review.text}</p>
 
-                   
+                    {/* Možnost smazání recenze */}
                     {isLoggedIn && review.author_zub === userId && (
                       <button
                         onClick={() => handleReviewDelete(review.id)}

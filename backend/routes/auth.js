@@ -97,21 +97,22 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Neplatný email nebo heslo." });
     }
 
-    // Nastavení cookies s údaji o uživateli
-    res.cookie(
-      "user",
-      {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        created_at: user.created_at,
-      },
-      {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 3600000, // 1 hodina
-      }
-    );
+        // Nastavení cookies s údaji o uživateli
+        res.cookie(
+          "user",
+          {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            created_at: user.created_at,
+          },
+          {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "None", // TOHLE PRIDEJ
+            maxAge: 3600000, // 1 hodina
+          }
+        );
 
     console.log("Uživatel úspěšně přihlášen:", user.email);
     res.status(200).json({ message: "Přihlášení bylo úspěšné." });

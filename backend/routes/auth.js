@@ -109,7 +109,7 @@ router.post("/login", async (req, res) => {
           {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "None", // TOHLE PRIDEJ
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
             maxAge: 3600000, // 1 hodina
           }
         );

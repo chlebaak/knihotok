@@ -4,53 +4,71 @@ const router = express.Router();
 
 // Google Books API Base URL
 const GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes";
+const NodeCache = require('node-cache');
+const searchCache = new NodeCache({ stdTTL: 300 }); // 5 minutes cache
 
 router.get("/search", async (req, res) => {
   const { query, type = "title", limit = 10 } = req.query;
+  
+  // Validate input
+  if (!query?.trim() || query.length < 3) {
+    return res.status(400).json({ 
+      message: "Query must be at least 3 characters long" 
+    });
+  }
 
-  if (!query || query.length < 3) {
-    return res
-      .status(400)
-      .json({ message: "Query must be at least 3 characters long" });
+  // Generate cache key
+  const cacheKey = `search:${type}:${query}:${limit}`;
+  
+  // Check cache first
+  const cachedResult = searchCache.get(cacheKey);
+  if (cachedResult) {
+    return res.json(cachedResult);
   }
 
   try {
-    const formattedQuery =
-      type === "author" ? `inauthor:${query}` : `intitle:${query}`;
+    const formattedQuery = type === "author" 
+      ? `inauthor:"${query.trim()}"` 
+      : `intitle:"${query.trim()}"`;
+
     const response = await axios.get(GOOGLE_BOOKS_API, {
       params: {
         q: formattedQuery,
-        maxResults: limit,
+        maxResults: Math.min(limit, 20), // Limit maximum results
         orderBy: "relevance",
         key: process.env.GOOGLE_BOOKS_API_KEY,
+        fields: 'items(id,volumeInfo(title,authors,description,imageLinks/thumbnail,industryIdentifiers,publishedDate,pageCount))', // Request only needed fields
       },
+      timeout: 5000 // 5 second timeout
     });
 
     if (!response.data.items) {
-      return res.status(404).json({ message: "No books found" });
+      const emptyResult = [];
+      searchCache.set(cacheKey, emptyResult);
+      return res.json(emptyResult);
     }
 
     const books = response.data.items.map((book) => ({
       id: book.id,
-      title: book.volumeInfo.title || "No title available",
-      author: book.volumeInfo.authors?.join(", ") || "Unknown Author",
-      description: book.volumeInfo.description || "No description available.",
-      cover: book.volumeInfo.imageLinks?.thumbnail || "",
-      isbn:
-        book.volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_13")
-          ?.identifier || "N/A",
-      publishedDate: book.volumeInfo.publishedDate || "Unknown",
+      title: book.volumeInfo.title || "Název není k dispozici",
+      author: book.volumeInfo.authors?.join(", ") || "Neznámý autor",
+      description: book.volumeInfo.description?.slice(0, 200) || "Popis není k dispozici.",
+      cover: book.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || "",
+      isbn: book.volumeInfo.industryIdentifiers?.find(id => id.type === "ISBN_13")?.identifier || "N/A",
+      publishedDate: book.volumeInfo.publishedDate?.split('-')[0] || "Neznámý rok vydání",
       pageCount: book.volumeInfo.pageCount || "N/A",
     }));
 
+    // Cache the results
+    searchCache.set(cacheKey, books);
     res.json(books);
+
   } catch (error) {
-    console.error(
-      "Error in /search route:",
-      error.message,
-      error.response?.data
-    );
-    res.status(500).json({ message: "Error fetching books" });
+    console.error("Search API Error:", error.message);
+    res.status(error.response?.status || 500).json({ 
+      message: "Chyba při vyhledávání knih",
+      error: error.message 
+    });
   }
 });
 

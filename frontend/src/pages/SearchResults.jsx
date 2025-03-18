@@ -19,7 +19,7 @@ const SearchResults = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL_LOCAL}/api/books/search`,
           {
-            params: { query, type, limit: 40 },
+            params: { query, type, limit: 15 },
           }
         );
         setBooks(response.data);

@@ -9,6 +9,8 @@ const SearchBooks = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
+  const abortControllerRef = useRef(null);
   const navigate = useNavigate();
 
   const searchBooks = async () => {
@@ -17,29 +19,63 @@ const SearchBooks = () => {
       return;
     }
 
+    // Cancel previous request if exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     try {
       const response = await axios.get(
-      `${import.meta.env.VITE_API_URL_LOCAL}/api/books/search`,
-      {
-        params: { query, type, limit: 5 },
-      }
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/books/search`,
+        {
+          params: { 
+            query: query.trim(),
+            type,
+            limit: 5 
+          },
+          signal: abortControllerRef.current.signal
+        }
       );
       setBooks(response.data);
     } catch (error) {
-      console.error("Error fetching books:", error);
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching books:", error);
+        setBooks([]);
+      }
     } finally {
       setIsLoading(false);
     }
-    };
+  };
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      searchBooks();
-    }, 300); // Rychlejší debounce
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [query, type]);
+    useEffect(() => {
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+  
+      // Set new timeout for debouncing
+      searchTimeoutRef.current = setTimeout(() => {
+        if (query.trim()) {
+          searchBooks();
+        } else {
+          setBooks([]);
+        }
+      }, 300);
+  
+      // Cleanup function
+      return () => {
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current);
+        }
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+      };
+    }, [query, type]);
 
   const handleFullSearch = () => {
     navigate(`/search-results?query=${query}&type=${type}`);

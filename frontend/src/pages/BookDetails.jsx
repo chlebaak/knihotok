@@ -435,411 +435,512 @@ const fetchBookDetails = async (userId) => {
         </div>
       )}
       <Search />
-      <div className="border-gray-200 gap-6 py-8 px-6 mx-auto max-w-screen-xl xl:gap-4 md:grid md:grid-cols-3 sm:py-16 lg:px-8 bg-white rounded-md shadow-xl ">
-        {/* Obálka knihy */}
-<div className="col-span-1 w-2/4 mx-auto md:mx-0 sm:w-2/5 md:w-2/4 sm:mb-4 md:mb-0">
-  {book.cover ? (
-    <img
-      className="rounded-lg shadow-lg border-2 border-[#800020] w-full h-auto object-cover"
-      src={book.cover}
-      alt={book.title}
-    />
-  ) : (
-    <div className="rounded-lg shadow-lg border-2 border-[#800020] w-full aspect-[2/3] bg-gradient-to-br from-[#800020]/80 to-[#800020] text-white flex flex-col items-center justify-center p-4">
-      <div className="text-3xl font-bold mb-4 text-center">
-        {book.title
-          .split(' ')
-          .map(word => word[0])
-          .slice(0, 3)
-          .join('')
-          .toUpperCase()}
-      </div>
-      <div className="w-full border-t border-white/30 pt-3 mb-3"></div>
-      <div className="text-xl text-center font-medium">
-        {book.title.length > 30 ? book.title.substring(0, 30) + "..." : book.title}
-      </div>
-      <div className="mt-auto text-sm opacity-80 text-center">
-        {book.author?.split(',')[0] || ""}
-      </div>
-    </div>
-  )}
-</div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="p-6 sm:p-8 lg:p-10">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+        {/* Book Cover Section */}
+        <div className="md:col-span-4 lg:col-span-3">
+          {book.cover ? (
+            <div className="relative group">
+              <div className="absolute inset-0 bg-[#800020] opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl"></div>
+              <img
+                className="w-full rounded-xl shadow-lg border-2 border-[#800020]/20 transition-transform duration-300 group-hover:scale-[1.02]"
+                src={book.cover}
+                alt={book.title}
+                loading="lazy"
+              />
+            </div>
+          ) : (
+            <div className="relative rounded-xl shadow-lg border-2 border-[#800020]/20 aspect-[2/3] bg-gradient-to-br from-[#800020] to-[#aa0030] text-white p-6">
+              <div className="absolute inset-0 bg-black/5"></div>
+              <div className="relative flex flex-col h-full">
+                <div className="text-4xl font-bold text-center mb-6">
+                  {book.title
+                    .split(' ')
+                    .map(word => word[0])
+                    .slice(0, 3)
+                    .join('')
+                    .toUpperCase()}
+                </div>
+                <div className="w-full border-t border-white/20 my-4"></div>
+                <div className="text-xl text-center font-medium">
+                  {book.title.length > 30 ? book.title.substring(0, 30) + "..." : book.title}
+                </div>
+                <div className="mt-auto text-sm text-white/70 text-center">
+                  {book.author?.split(',')[0] || ""}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* Informace o knize */}
-        <div className="col-span-2 mt-4 md:mt-0">
-          <h2 className="mb-4 text-4xl tracking-tight font-extrabold text-[#800020]">
+        {/* Book Info Section */}
+        <div className="md:col-span-8 lg:col-span-9">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#800020] mb-4">
             {book.title}
-          </h2>
+          </h1>
 
-          {/* Hodnocení hvězdičkami */}
-          <div className="flex items-center mb-2">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <svg
-                key={index}
-                className={`w-7 h-7 ${
-                  index < Math.round(averageRating)
-                    ? "text-[#800020]"
-                    : "text-gray-300"
-                } me-1`}
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 22 20"
-              >
-                <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-              </svg>
-            ))}
-            <p className="ms-1 text-sm font-medium text-gray-600">
-              {averageRating.toFixed(1)} z 5
-            </p>
+          {/* Rating Section */}
+          <div className="flex items-center mb-4">
+            <div className="flex items-center">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <svg
+                  key={index}
+                  className={`w-6 h-6 ${
+                    index < Math.round(averageRating)
+                      ? "text-[#800020]"
+                      : "text-gray-200"
+                  } transition-colors duration-200`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span className="ml-3 text-sm font-medium text-gray-600">
+              {averageRating.toFixed(1)} z 5 ({totalReviews} hodnocení)
+            </span>
           </div>
 
-          <i className="text-gray-700">{book.author}</i>
+          {/* Author */}
+          <p className="text-xl text-gray-700 mb-6">
+            <span className="font-medium">Autor:</span> {book.author}
+          </p>
 
-          <div>
-            <p
-              className="mb-2 font-light text-gray-700 md:text-lg"
+          {/* Description */}
+          <div className="prose prose-sm sm:prose lg:prose-lg max-w-none mb-6">
+            <div
+              className="text-gray-600"
               dangerouslySetInnerHTML={{ __html: renderDescription() }}
-            ></p>
+            />
             {book.description.length > MAX_LENGTH && (
               <button
                 onClick={toggleExpanded}
-                className="text-[#800020] hover:underline font-medium"
+                className="text-[#800020] hover:text-[#aa0030] font-medium transition-colors duration-200"
               >
-                {isExpanded ? "Zobrazit méně" : "Zobrazit více"}
+                {isExpanded ? "Zobrazit méně ↑" : "Zobrazit více ↓"}
               </button>
             )}
           </div>
 
-          {/* Další informace */}
-          <div className="mt-2 text-gray-800">
-            <span className="font-bold text-[#800020]">{book.publisher}</span> ·
-            <span className="ml-2">
-              {new Date(book.publishedDate).toLocaleDateString()}
-            </span>
-            <br />
-            <span>{book.pageCount} stran</span>
-            <br />
-            <div className="flex items-center">
-              Jazyk:&nbsp;
-              <img
-                src={`https://flagcdn.com/w40/${countryCode}.png`}
-                alt={book.language}
-                className="w-5 h-4 ml-1"
-              />
+          {/* Book Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-2">
+              <p className="flex items-center text-gray-700">
+                <span className="font-medium mr-2">Vydavatel:</span>
+                <span className="text-[#800020]">{book.publisher}</span>
+              </p>
+              <p className="flex items-center text-gray-700">
+                <span className="font-medium mr-2">Datum vydání:</span>
+                {new Date(book.publishedDate).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="flex items-center text-gray-700">
+                <span className="font-medium mr-2">Počet stran:</span>
+                {book.pageCount}
+              </p>
+              <p className="flex items-center text-gray-700">
+                <span className="font-medium mr-2">Jazyk:</span>
+                <img
+                  src={`https://flagcdn.com/w40/${countryCode}.png`}
+                  alt={book.language}
+                  className="w-5 h-4 ml-1"
+                />
+              </p>
             </div>
           </div>
 
-          {/* Akční tlačítka */}
-          <div className="mt-4">
-            <a
-              href="#"
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4">
+            <button
               onClick={() =>
                 isInFavorites
                   ? handleRemoveFromList("favorite")
                   : handleAddToList("favorite")
               }
-              className={`inline-flex items-center m-2 text-white ${
-                isInFavorites ? "bg-orange-600" : "bg-[#800020]"
-              } hover:bg-[#5a0014] focus:ring-4 focus:ring-[#800020] font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-all shadow-md hover:shadow-lg`}
+              className={`
+                flex items-center px-6 py-3 rounded-xl font-medium text-sm
+                transition-all duration-300 transform hover:scale-105
+                ${isInFavorites 
+                  ? "bg-orange-600 text-white hover:bg-orange-700" 
+                  : "bg-[#800020] text-white hover:bg-[#aa0030]"}
+                shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#800020]
+              `}
             >
-              <FaHeart className="mr-2" />
+              <FaHeart className={`mr-2 ${isInFavorites ? 'animate-pulse' : ''}`} />
               {isInFavorites ? "V oblíbených" : "Přidat do oblíbených"}
-            </a>
+            </button>
 
-            <a
-              href="#"
+            <button
               onClick={() =>
                 isInToRead
                   ? handleRemoveFromList("toread")
                   : handleAddToList("toread")
               }
-              className={`inline-flex items-center m-2 text-white ${
-                isInToRead ? "bg-orange-600" : "bg-[#800020]"
-              } hover:bg-[#5a0014] focus:ring-4 focus:ring-[#800020] font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-all shadow-md hover:shadow-lg`}
+              className={`
+                flex items-center px-6 py-3 rounded-xl font-medium text-sm
+                transition-all duration-300 transform hover:scale-105
+                ${isInToRead 
+                  ? "bg-orange-600 text-white hover:bg-orange-700" 
+                  : "bg-[#800020] text-white hover:bg-[#aa0030]"}
+                shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#800020]
+              `}
             >
               <FaBook className="mr-2" />
               {isInToRead ? "V ToRead" : "Přidat do ToRead"}
-            </a>
+            </button>
           </div>
 
-          {/* Žánry */}
-          {book.genres && book.genres.length > 0 ? (
-            <div className="mt-3">
-              <h3 className="text-lg font-semibold text-[#800020]">
-                📚 Žánry:
+          {/* Genres */}
+          {book.genres && book.genres.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-[#800020] mb-3 flex items-center">
+                <span className="mr-2">📚</span> Žánry
               </h3>
-              <ul className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2">
                 {book.genres.map((genre, index) => (
-                  <li
+                  <span
                     key={index}
-                    className="bg-gray-200 text-gray-800 px-3 py-1 rounded-lg text-sm font-medium shadow-sm hover:bg-gray-300 transition"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium
+                             hover:bg-[#800020]/10 transition-colors duration-200 cursor-pointer"
                   >
                     {genre}
-                  </li>
+                  </span>
                 ))}
-              </ul>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-600 italic mt-3">Žánry nejsou dostupné.</p>
           )}
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-      {book.authorDetails && (
-  <div className="mt-8 p-6 bg-white border rounded-md border-gray-200 shadow-lg max-w-screen-xl mx-auto">
-    <h2 className="text-xl font-bold text-[#800020] border-b border-[#800020] pb-2 mb-4">
-      O autorovi
-    </h2>
+{book.authorDetails && (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200/50">
+      <div className="p-8">
+        {/* Header */}
+        <div className="flex items-center space-x-3 mb-6">
+          <span className="text-2xl">👤</span>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-[#800020] to-[#aa0030] bg-clip-text text-transparent">
+            O autorovi
+          </h2>
+        </div>
 
-    <div className="flex items-center gap-6">
-      {book.authorDetails.thumbnail ? (
-        <img
-          src={book.authorDetails.thumbnail}
-          alt="Author"
-          className="w-28 h-32 rounded-lg shadow-md border border-[#800020] object-cover"
-        />
-      ) : (
-        <div className="w-28 h-32 rounded-lg shadow-md border border-[#800020] bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white">
-          <div className="text-xl font-bold">
-            {book.author
-              ?.split(' ')
-              .map(word => word[0])
-              .slice(0, 2)
-              .join('')
-              .toUpperCase() || "A"}
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Author Image/Placeholder */}
+          <div className="flex-shrink-0">
+            {book.authorDetails.thumbnail ? (
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#800020] to-[#aa0030] rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                <div className="relative">
+                  <img
+                    src={book.authorDetails.thumbnail}
+                    alt={`Autor ${book.author}`}
+                    className="w-32 h-40 rounded-xl shadow-lg object-cover border-2 border-white transition-transform duration-300 group-hover:scale-[1.02]"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="w-32 h-40 rounded-xl overflow-hidden relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#800020] to-[#aa0030] opacity-90"></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <div className="text-3xl font-bold">
+                    {book.author
+                      ?.split(' ')
+                      .map(word => word[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase() || "A"}
+                  </div>
+                  <div className="mt-2 text-sm text-white/80">Autor</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Author Info */}
+          <div className="flex-1 space-y-4">
+            <div className="prose prose-lg max-w-none">
+              <p className="text-gray-700 leading-relaxed">
+                {book.authorDetails.summary}
+              </p>
+            </div>
+
+            {book.authorDetails.wikipediaLink && (
+              <a
+                href={book.authorDetails.wikipediaLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium
+                         text-[#800020] bg-[#800020]/5 hover:bg-[#800020]/10
+                         transition-all duration-300 group"
+              >
+                <span className="mr-2 transition-transform duration-300 group-hover:scale-110">
+                  📖
+                </span>
+                <span className="relative">
+                  Přečtěte si více na Wikipedii
+                  <span className="absolute -bottom-0.5 left-0 w-full h-0.5 bg-[#800020] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                </span>
+                <svg 
+                  className="ml-2 w-4 h-4 transform transition-transform duration-300 group-hover:translate-x-1" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </a>
+            )}
           </div>
         </div>
-      )}
-      <p className="text-gray-700 leading-relaxed flex-1">
-        {book.authorDetails.summary}
-      </p>
+      </div>
     </div>
-
-    {book.authorDetails.wikipediaLink && (
-      <a
-        href={book.authorDetails.wikipediaLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-block text-[#800020] hover:text-[#5a0014] font-medium transition-all"
-      >
-        📖 Přečtěte si více na Wikipedii
-      </a>
-    )}
   </div>
 )}
 
-          <div className="mt-8 p-6 bg-white border border-gray-200 rounded-md shadow-lg max-w-screen-xl mx-auto">
-            <div className="flex items-center justify-left mb-2">
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="p-8">
+      {/* Rating Summary */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+        <div className="flex flex-col items-start">
+          <div className="flex items-center">
+            <div className="flex">
               {Array.from({ length: 5 }).map((_, index) => (
-            <svg
-              key={index}
-              className={`w-7 h-7 ${
-                index < Math.round(averageRating)
-              ? "text-red-800"
-              : "text-gray-300"
-              } me-1`}
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 22 20"
-            >
-              <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
-            </svg>
-              ))}
-              <p className="ms-1 text-sm font-medium text-gray-500">
-            {averageRating.toFixed(1)} z 5
-              </p>
-            </div>
-            <p className="text-sm font-medium text-gray-500 text-left">
-              {totalReviews === 0
-            ? "No reviews yet"
-            : `${totalReviews} ${totalReviews === 1 ? "review" : "reviews"}`}
-            </p>
-
-            {/* Dynamické rozložení hodnocení */}
-        {ratingsBreakdown.map((rating, index) => (
-          <div className="flex items-center mt-4" key={index}>
-            <span className="text-sm font-medium text-red-800 hover:underline">
-              {rating.stars} star
-            </span>
-            <div className="w-2/4 h-5 mx-4 bg-gray-200 rounded">
-              <div
-                className="h-5 bg-red-800 rounded"
-                style={{ width: `${rating.percentage}%` }}
-              ></div>
-            </div>
-            <span className="text-sm font-medium text-gray-500">
-              {rating.count} ({rating.percentage.toFixed(1)}%)
-            </span>
-          </div>
-        ))}
-
-        <section className="bg-white py-8 antialiased md:py-16">
-          <div className="mx-auto max-w-screen-xl px-4">
-            {isLoggedIn && !userReview ? (
-              <div className="mt-6 border-t border-gray-400 pt-6">
-                <h2 className="text-2xl font-bold text-[#800020]">
-                  Přidat recenzi
-                </h2>
-                <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
-                  {/* Hodnocení */}
-                  <div>
-                    <label className="block text-gray-900 font-semibold text-lg">
-                      Hodnocení:
-                    </label>
-                    <div className="flex items-center gap-2 mt-1">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <svg
-                          key={rating}
-                          className={`h-7 w-7 cursor-pointer transition-colors duration-200 ${
-                            newReview.rating >= rating
-                              ? "text-[#800020]"
-                              : "text-gray-400 hover:text-[#a52a2a]"
-                          }`}
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                          onClick={() => setNewReview({ ...newReview, rating })}
-                        >
-                          <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
-                        </svg>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recenze */}
-                  <div>
-                    <label className="block text-gray-900 font-semibold text-lg">
-                      Recenze:
-                    </label>
-                    <textarea
-                      placeholder="Napište svou recenzi zde..."
-                      value={newReview.comment}
-                      onChange={(e) =>
-                        setNewReview({ ...newReview, comment: e.target.value })
-                      }
-                      className="border-2 border-[#800020] focus:border-[#5a0014] focus:ring-2 focus:ring-[#800020] p-3 w-full rounded-lg mt-1 outline-none transition-all duration-200 bg-gray-50 text-gray-900"
-                    />
-                  </div>
-
-                  {/* Tlačítko */}
-                  <button
-                    type="submit"
-                    className="bg-[#800020] hover:bg-[#5a0014] text-white font-bold px-5 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    Zveřejnit recenzi
-                  </button>
-                </form>
-              </div>
-            ) : isLoggedIn && userReview ? (
-              <p className="text-green-500 mt-6">
-                Pro tuto knihu jste již napsal/a recenzi.
-              </p>
-            ) : (
-              <p className="text-red-500 mt-6">
-                Přihlaste se, abyste mohli přidat recenzi.
-              </p>
-            )}
-
-            <h2 className="text-2xl font-bold text-[#800020] mt-6">
-              Všechny recenze
-            </h2>
-            <div className="mt-6 border-t border-gray-300 pt-6 space-y-6">
-              {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="flex items-start gap-4 pb-6 border-b border-gray-300 transition-transform duration-300 hover:scale-105"
+                <svg
+                  key={index}
+                  className={`w-8 h-8 ${
+                    index < Math.round(averageRating)
+                      ? "text-[#800020]"
+                      : "text-gray-200"
+                  } transition-colors duration-200`}
+                  viewBox="0 0 22 20"
+                  fill="currentColor"
                 >
-                  {/* Profilový obrázek */}
-                  <div
-                    className={`w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 transition-all ${
-                      review.authorProfile
-                        ? "border-[#800020] cursor-pointer hover:shadow-lg"
-                        : "border-gray-500"
-                    }`}
-                    onClick={() => {
-                      if (review.authorProfile)
-                        navigate(`/profile/${review.author_zub}`);
-                    }}
-                  >
-                    {review.authorProfile ? (
-                      <img
-                        src={review.authorProfile.profile_picture}
-                        alt={review.authorProfile.username}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full bg-gray-300">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-8 h-8 text-gray-600"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M12 12c2.75 0 5-2.25 5-5s-2.25-5-5-5-5 2.25-5 5 2.25 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Informace o recenzi */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1">
-                      {/* Hvězdičky hodnocení */}
-                      {[...Array(review.rating)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className="h-5 w-5 text-[#800020]"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M12 17.75l-5.95 3.13 1.14-6.64L2.5 9.37l6.67-.97L12 2.5l2.83 5.9 6.67.97-4.82 4.87 1.14 6.64z" />
-                        </svg>
-                      ))}
-                    </div>
-
-                    {/* Jméno autora */}
-                    <p
-                      className={`text-base font-semibold transition ${
-                        review.authorProfile
-                          ? "text-[#800020] cursor-pointer hover:underline"
-                          : "text-gray-900"
-                      }`}
-                      onClick={() => {
-                        if (review.authorProfile)
-                          navigate(`/profile/${review.author_zub}`);
-                      }}
-                    >
-                      {review.authorProfile?.username ||
-                        "Recenze ze spsul knihovny"}
-                    </p>
-
-                    {/* Datum recenze */}
-                    <p className="text-sm text-gray-500">
-                      {new Date(review.created).toLocaleString()}
-                    </p>
-
-                    {/* Text recenze */}
-                    <p className="text-gray-800 mt-2">{review.text}</p>
-
-                    {/* Možnost smazání recenze */}
-                    {isLoggedIn && review.author_zub === userId && (
-                      <button
-                        onClick={() => handleReviewDelete(review.id)}
-                        className="bg-[#800020] hover:bg-[#5a0014] text-white px-3 py-1 mt-2 rounded transition shadow-md hover:shadow-lg"
-                      >
-                        Smazat
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
+                </svg>
               ))}
             </div>
+            <span className="ml-3 text-2xl font-bold text-gray-900">
+              {averageRating.toFixed(1)}
+              <span className="text-base font-normal text-gray-500 ml-1">/ 5</span>
+            </span>
           </div>
-        </section>
+          <p className="text-sm font-medium text-gray-500 mt-1">
+            {totalReviews === 0
+              ? "Zatím bez hodnocení"
+              : `${totalReviews} ${
+                  totalReviews === 1 ? "hodnocení" : "hodnocení"
+                }`}
+          </p>
+        </div>
+
+        {/* Rating Breakdown */}
+        <div className="w-full md:w-1/2 mt-6 md:mt-0">
+          {ratingsBreakdown.map((rating, index) => (
+            <div className="flex items-center mb-2" key={index}>
+              <span className="w-20 text-sm font-medium text-gray-600">
+                {rating.stars} {rating.stars === 1 ? "hvězda" : "hvězdy"}
+              </span>
+              <div className="flex-1 h-3 mx-4 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#800020] rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${rating.percentage}%` }}
+                />
+              </div>
+              <span className="w-20 text-sm text-gray-500">
+                {rating.count} ({rating.percentage.toFixed(0)}%)
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Review Form */}
+      {isLoggedIn && !userReview ? (
+        <div className="mt-8 border-t border-gray-200 pt-8">
+          <h2 className="text-2xl font-bold text-[#800020] mb-6">
+            Přidat recenzi
+          </h2>
+          <form onSubmit={handleReviewSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">
+                Hodnocení
+              </label>
+              <div className="flex items-center gap-3">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    type="button"
+                    onClick={() => setNewReview({ ...newReview, rating })}
+                    className={`relative group`}
+                  >
+                    <svg
+                      className={`w-8 h-8 transition-all duration-200 ${
+                        newReview.rating >= rating
+                          ? "text-[#800020]"
+                          : "text-gray-300 group-hover:text-[#800020]/50"
+                      }`}
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z" />
+                    </svg>
+                  </button>
+                ))}
+                <span className="text-sm text-gray-500 ml-2">
+                  {newReview.rating} z 5
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">
+                Vaše recenze
+              </label>
+              <textarea
+                placeholder="Podělte se o své dojmy z knihy..."
+                value={newReview.comment}
+                onChange={(e) =>
+                  setNewReview({ ...newReview, comment: e.target.value })
+                }
+                className="w-full min-h-[150px] px-4 py-3 border-2 border-gray-200 rounded-xl
+                       focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/20
+                       transition-all duration-200 text-gray-700 placeholder-gray-400"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center px-6 py-3 border border-transparent
+                       text-base font-medium rounded-xl text-white bg-[#800020] 
+                       hover:bg-[#5a0014] focus:outline-none focus:ring-2 focus:ring-offset-2 
+                       focus:ring-[#800020] transition-all duration-200 shadow-sm hover:shadow-md"
+            >
+              Zveřejnit recenzi
+            </button>
+          </form>
+        </div>
+      ) : isLoggedIn && userReview ? (
+        <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-xl">
+          <p className="text-green-700">
+            Pro tuto knihu jste již napsal/a recenzi.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-8 p-4 bg-[#800020]/5 border border-[#800020]/20 rounded-xl">
+          <p className="text-[#800020]">
+            Pro přidání recenze se prosím nejdříve přihlaste.
+          </p>
+        </div>
+      )}
+
+      {/* Reviews List */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-8">
+          Recenze čtenářů
+        </h2>
+        <div className="space-y-8">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="flex gap-6 p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200"
+            >
+              <div
+                className={`relative group cursor-pointer`}
+                onClick={() => {
+                  if (review.authorProfile)
+                    navigate(`/profile/${review.author_zub}`);
+                }}
+              >
+                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#800020]">
+                  {review.authorProfile ? (
+                    <img
+                      src={review.authorProfile.profile_picture}
+                      alt={review.authorProfile.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-gray-400"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 12c2.75 0 5-2.25 5-5s-2.25-5-5-5-5 2.25-5 5 2.25 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="font-medium text-gray-900">
+                    {review.authorProfile?.username || "Recenze ze SPSUL knihovny"}
+                  </p>
+                  <span className="text-gray-300">•</span>
+                  <time className="text-sm text-gray-500">
+                    {new Date(review.created).toLocaleDateString()}
+                  </time>
+                </div>
+
+                <div className="flex items-center mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < review.rating
+                          ? "text-[#800020]"
+                          : "text-gray-200"
+                      }`}
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 17.75l-5.95 3.13 1.14-6.64L2.5 9.37l6.67-.97L12 2.5l2.83 5.9 6.67.97-4.82 4.87 1.14 6.64z" />
+                    </svg>
+                  ))}
+                </div>
+
+                <p className="text-gray-700 leading-relaxed">{review.text}</p>
+
+                {isLoggedIn && review.author_zub === userId && (
+                  <button
+                    onClick={() => handleReviewDelete(review.id)}
+                    className="mt-4 inline-flex items-center text-sm font-medium text-[#800020] hover:text-[#5a0014]"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Smazat recenzi
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
   );
 };

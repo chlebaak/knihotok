@@ -13,7 +13,6 @@ import BookDetails from "./pages/BookDetails.jsx";
 import SearchResults from "./pages/SearchResults.jsx";
 import Posts from "./pages/Posts.jsx";
 import PostDetails from "./pages/postDetails.jsx";
-import Events from "./pages/Events.jsx";
 import Messages from "./pages/Messages.jsx";
 import Rank from "./pages/Rank.jsx";
 
@@ -35,7 +34,6 @@ export default function App() {
             <Route path="/profile/:id" element={<Profil />} />
             <Route path="/Search" element={<Search />} />
             <Route path="/search-results" element={<SearchResults />} />
-            <Route path="/events" element={<Events />} />
             <Route path="/books/:id" element={<BookDetails />} />
             <Route path="/posts" element={<Posts />} />
             <Route path="/posts/:id" element={<PostDetails />} />

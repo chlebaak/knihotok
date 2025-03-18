@@ -5,6 +5,11 @@ import defaultProfilePic from "../assets/user_icon.png";
 import Cover from "../assets/cover.png";
 import { FaArrowUp, FaArrowDown, FaTrash } from "react-icons/fa";
 import pb from "../lib/pocketbase.js";
+import rank1 from "../assets/rank1.png";
+import rank2 from "../assets/rank2.png";
+import rank3 from "../assets/rank3.png";
+import rank4 from "../assets/rank4.png";
+import rank5 from "../assets/rank5.png";
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("seznamy"); // Výchozí tab
@@ -169,6 +174,15 @@ export default function Profile() {
     }
   };
 
+    // Obrázky pro různé úrovně
+    const rankImages = {
+      1: rank1,
+      2: rank2,
+      3: rank3,
+      4: rank4,
+      5: rank5
+    };
+
   if (error) {
     return <p className="text-red-500 text-center mt-4">{error}</p>;
   }
@@ -178,398 +192,724 @@ export default function Profile() {
   }
 
   return (
-    <section className="relative pt-40 pb-24 px-5">
-      <img
-        src={Cover}
-        alt="cover-image"
-        className="w-full absolute top-0 left-0 z-0 h-60 object-cover rounded-lg shadow-lg"
-      />
-      <div className="w-full max-w-7xl mx-auto px-6 md:px-8">
-        <div className="flex items-center justify-center sm:justify-start relative z-10 mb-5">
-          <div className="relative group">
-            {/* Vnější kruh (gradient + jemná záře) */}
-            <div className="absolute inset-0 w-28 h-28 rounded-full bg-gradient-to-tr from-[#5a0014] to-[#800020] opacity-90 group-hover:opacity-100 transition duration-300 blur-md"></div>
+    <section className="relative">
+      {/* Hero sekce s obrázkem na pozadí */}
+<div className="relative w-full">
+  {/* Cover image s překryvným gradientem */}
+  <div className="relative h-72 w-full overflow-hidden">
+    <img
+      src={Cover}
+      alt="cover-image"
+      className="w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-b from-[#800020]/30 to-black/70"></div>
+  </div>
 
-            {/* Profilovka */}
-            <img
-              src={user.profile_picture || defaultProfilePic}
-              alt="user-avatar-image"
-              className="w-24 h-24 rounded-full object-cover border-4 border-[#800020] shadow-lg transition-transform duration-300 transform group-hover:scale-110 group-hover:shadow-2xl"
-            />
-          </div>
+  {/* Obsah profilu - s relativním positioningem */}
+  <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    {/* Avatar sekce - vycentrována na mobilech, vlevo na větších obrazovkách */}
+    <div className="relative -mt-16 mb-8 flex justify-center sm:justify-start">
+      <div className="relative z-10 group">
+        {/* Svítící kruh pod avatarem */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#5a0014] to-[#800020] opacity-80 group-hover:opacity-100 transition-all duration-300 blur-md scale-110"></div>
+        
+        {/* Avatar */}
+        <div className="relative">
+          <img
+            src={user.profile_picture || defaultProfilePic}
+            alt={`${user.username} profile`}
+            className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:border-[#800020]"
+          />
         </div>
+      </div>
+    </div>
 
-        <div className="flex items-center justify-center flex-col sm:flex-row max-sm:gap-5 sm:justify-between mb-20">
-          {isEditing ? (
-            <form
-              onSubmit={handleFormSubmit}
-              className="space-y-6 w-full max-w-lg bg-white shadow-lg rounded-lg p-6 border border-[#800020] animate-fade-in"
-            >
-              <div>
-                <label
-                  htmlFor="username"
-                  className="block font-medium text-gray-700"
-                >
-                  Uživatelské jméno
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full border-[#800020] rounded-md shadow-sm p-2 transition-all focus:ring-2 focus:ring-[#800020] focus:border-[#800020]"
-                  required
-                />
-              </div>
+    {/* Obsah profilu - editační formulář nebo zobrazení profilu */}
+    <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+      {isEditing ? (
+        <form
+          onSubmit={handleFormSubmit}
+          className="space-y-6 w-full max-w-lg mx-auto animate-fade-in"
+        >
+          <h2 className="text-2xl font-bold text-[#800020] mb-4">Upravit profil</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Uživatelské jméno
+              </label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border-[#800020] shadow-sm p-3 focus:ring-2 focus:ring-[#800020] focus:border-[#800020] transition-all"
+                required
+              />
+            </div>
 
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block font-medium text-gray-700"
-                >
-                  Popis
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full border-[#800020] rounded-md shadow-sm p-2 transition-all focus:ring-2 focus:ring-[#800020] focus:border-[#800020]"
-                />
-              </div>
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Popis profilu
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                rows="4"
+                className="mt-1 block w-full rounded-md border-[#800020] shadow-sm p-3 focus:ring-2 focus:ring-[#800020] focus:border-[#800020] transition-all"
+              />
+            </div>
 
-              <div>
-                <label
-                  htmlFor="profile_picture"
-                  className="block font-medium text-gray-700"
-                >
-                  Profilová fotka
-                </label>
+            <div>
+              <label
+                htmlFor="profile_picture"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Profilová fotka
+              </label>
+              <div className="mt-1 flex items-center">
                 <input
                   type="file"
                   id="profile_picture"
                   onChange={handleFileChange}
-                  className="mt-1 block w-full border border-[#800020] rounded-md p-2 bg-gray-50 cursor-pointer file:bg-[#800020] file:text-white file:rounded-md file:py-1 file:px-2 file:border-none hover:file:bg-[#5a0014] transition"
+                  className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 
+                           file:border-0 file:rounded-md file:font-medium file:bg-[#800020] 
+                           file:text-white hover:file:bg-[#5a0014] transition-all 
+                           cursor-pointer focus:outline-none"
                 />
               </div>
+            </div>
+          </div>
 
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="py-2 px-4 bg-gray-400 text-white rounded-md transition-all hover:bg-gray-500"
-                >
-                  Zrušit
-                </button>
-                <button
-                  type="submit"
-                  className="py-2 px-4 bg-[#800020] text-white rounded-md transition-all hover:bg-[#5a0014] transform hover:scale-105"
-                >
-                  Uložit
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="block animate-fade-in">
-              <h3 className="font-manrope font-bold text-4xl text-[#800020] mb-1 max-sm:text-center transition-all duration-300 hover:scale-105">
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-4 py-2 rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all"
+            >
+              Zrušit
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-md bg-[#800020] text-white hover:bg-[#5a0014] transition-all"
+            >
+              Uložit změny
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+            <div className="space-y-4 md:w-7/12">
+              <h1 className="text-3xl font-bold text-[#800020]">
                 {user.username}
-              </h3>
-              <p className="font-normal text-base leading-7 text-gray-500 max-sm:text-center">
-                {user.email}
-              </p>
-              <p className="font-normal text-base leading-7 text-gray-500 max-sm:text-center pt-4">
-                {user.description || "Žádný popis."}
-              </p>
-              <p className="pt-2">
-                Členem od:{" "}
-                {new Date(user.created_at).toLocaleDateString("cs-CZ", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
+              </h1>
+              
+              <div className="space-y-2 text-gray-600">
+                <p className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#800020]" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  <span>{user.email}</span>
+                </p>
+                
+                <p className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#800020]" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span>
+                    Členem od: {new Date(user.created_at).toLocaleDateString("cs-CZ", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </p>
+              </div>
+              
+              <div className="py-4 border-t border-gray-200">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">O mně</h3>
+                <p className="text-gray-700 whitespace-pre-line">
+                  {user.description || "Žádný popis."}
+                </p>
+              </div>
+              
               {canEdit && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="mt-4 py-2 px-4 bg-[#800020] text-white rounded-md transition-all hover:bg-[#5a0014] transform hover:scale-105"
+                  className="mt-4 inline-flex items-center px-4 py-2 bg-[#800020] text-white rounded-md hover:bg-[#5a0014] transition-all"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
                   Upravit profil
                 </button>
               )}
             </div>
-          )}
+            
+            {/* Rank card */}
+            <div className="mt-6 md:mt-0 p-5 bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-md border border-gray-200 md:w-4/12">
+              <div className="flex items-center space-x-4">
+                <div className="rounded-full p-1 bg-gradient-to-tr from-[#800020] to-[#aa0030]">
+                  <img
+                    src={rankImages[user.rank]}
+                    alt={`Rank ${user.rank}`}
+                    className="w-16 h-16 object-contain bg-white rounded-full p-2"
+                  />
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    Level {user.rank}
+                  </h3>
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center text-sm">
+                      <span className="font-medium text-[#800020]">Body:</span>
+                      <span className="ml-2 font-semibold">{user.points}</span>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#800020] to-[#aa0030] rounded-full"
+                        style={{ width: `${Math.min(100, (user.points % 100))}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {user.points % 100}/100 do dalšího levelu
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+    </div>
+  </div>
+</div>
 
-      {/* Navigační lišta */}
-      <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 border-b border-[#800020]">
-        <li className="me-2">
-          <button
-            onClick={() => setActiveTab("seznamy")}
-            className={`inline-block p-4 rounded-t-lg ${
-              activeTab === "seznamy"
-                ? "text-[#800020] bg-gray-100"
-                : "hover:text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Seznamy knih
-          </button>
-        </li>
-        <li className="me-2">
-          <button
-            onClick={() => setActiveTab("prispevky")}
-            className={`inline-block p-4 rounded-t-lg ${
-              activeTab === "prispevky"
-                ? "text-[#800020] bg-gray-100"
-                : "hover:text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Příspěvky
-          </button>
-        </li>
-        <li className="me-2">
-          <button
-            onClick={() => setActiveTab("recenze")}
-            className={`inline-block p-4 rounded-t-lg ${
-              activeTab === "recenze"
-                ? "text-[#800020] bg-gray-100"
-                : "hover:text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            Recenze
-          </button>
-        </li>
-      </ul>
+     {/* Navigační lišta */}
+<div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  <nav className="mb-6">
+    <ul className="flex flex-wrap border-b border-[#800020]/20 relative">
+      {/* Dynamický indikátor aktivní záložky */}
+      <div 
+        className="absolute bottom-0 h-0.5 bg-[#800020] transition-all duration-300 ease-in-out"
+        style={{
+          left: activeTab === "seznamy" ? "0%" : activeTab === "prispevky" ? "33.33%" : "66.66%",
+          width: "33.33%"
+        }}
+      ></div>
+      
+      <li className="w-1/3">
+        <button
+          onClick={() => setActiveTab("seznamy")}
+          className={`relative w-full py-3 px-1 text-center font-medium tracking-wide rounded-t-lg transition-all duration-300
+            ${activeTab === "seznamy" 
+              ? "text-[#800020] font-semibold" 
+              : "text-gray-500 hover:text-[#800020]/70"}`}
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span>Seznamy knih</span>
+          </div>
+          
+          {/* Aktivní indikátor */}
+          {activeTab === "seznamy" && (
+            <span className="absolute -bottom-[1px] left-0 w-full h-[1px] bg-white"></span>
+          )}
+        </button>
+      </li>
+      
+      <li className="w-1/3">
+        <button
+          onClick={() => setActiveTab("prispevky")}
+          className={`relative w-full py-3 px-1 text-center font-medium tracking-wide rounded-t-lg transition-all duration-300
+            ${activeTab === "prispevky" 
+              ? "text-[#800020] font-semibold" 
+              : "text-gray-500 hover:text-[#800020]/70"}`}
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            </svg>
+            <span>Příspěvky</span>
+          </div>
+          
+          {/* Aktivní indikátor */}
+          {activeTab === "prispevky" && (
+            <span className="absolute -bottom-[1px] left-0 w-full h-[1px] bg-white"></span>
+          )}
+        </button>
+      </li>
+      
+      <li className="w-1/3">
+        <button
+          onClick={() => setActiveTab("recenze")}
+          className={`relative w-full py-3 px-1 text-center font-medium tracking-wide rounded-t-lg transition-all duration-300
+            ${activeTab === "recenze" 
+              ? "text-[#800020] font-semibold" 
+              : "text-gray-500 hover:text-[#800020]/70"}`}
+        >
+          <div className="flex items-center justify-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            <span>Recenze</span>
+          </div>
+          
+          {/* Aktivní indikátor */}
+          {activeTab === "recenze" && (
+            <span className="absolute -bottom-[1px] left-0 w-full h-[1px] bg-white"></span>
+          )}
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
 
       {/* Obsah podle aktivní záložky */}
       <div className="p-4">
-        {activeTab === "seznamy" && (
-          <div className="mt-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-              Oblíbené knihy
-            </h3>
-            {favorites.length > 0 ? (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-4 justify-center">
-                {favorites.map((book) => (
-                  <div
-                    key={book.google_books_id}
-                    className="relative group w-40 h-72 rounded-lg overflow-hidden shadow-md"
-                  >
-                    {/* Obálka knihy jako pozadí */}
-                    <img
-                      src={book.cover_url}
-                      alt={book.title}
-                      className="absolute inset-0 w-full h-full object-cover transform transition duration-300 group-hover:scale-105"
-                    />
-
-                    {/* Tmavý gradient pro lepší čitelnost */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
-
-                    {/* Text a tlačítko */}
-                    <div className="absolute bottom-0 left-0 w-full p-3 text-white flex flex-col items-center text-center">
-                      <h4 className="text-sm font-semibold leading-tight">
-                        <Link
-                          to={`/books/${book.google_books_id}`}
-                          className="hover:underline"
-                        >
-                          {book.title}
-                        </Link>
-                      </h4>
-                      <p className="text-xs opacity-90">{book.author}</p>
-                      <button
-                        onClick={() =>
-                          handleRemoveBook(book.google_books_id, "favorite")
-                        }
-                        className="mt-2 bg-red-600 text-white px-3 py-1 rounded-md text-xs hover:bg-red-700 transition opacity-0 group-hover:opacity-100"
-                      >
-                        Odebrat
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      {activeTab === "seznamy" && (
+  <div className="mt-8 max-w-7xl mx-auto animate-fade-in">
+    {/* Sekce oblíbených knih */}
+    <div className="mb-12">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-1 h-8 bg-gradient-to-b from-[#800020] to-[#aa0030] rounded-full"></div>
+        <h3 className="text-2xl font-bold text-[#800020]">Oblíbené knihy</h3>
+      </div>
+      
+      {favorites.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 justify-center">
+          {favorites.map((book) => (
+            <div
+              key={book.google_books_id}
+              className="relative group rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl"
+            >
+              {/* Stužka oblíbené */}
+              <div className="absolute top-0 right-0 z-20 bg-gradient-to-br from-[#800020] to-[#aa0030] text-white text-xs font-bold py-1 px-2 rounded-bl-lg shadow-md">
+                ★ Oblíbené
               </div>
-            ) : (
-              <p className="text-gray-500">Žádné oblíbené knihy.</p>
-            )}
-
-            <h3 className="text-2xl font-bold text-gray-900 mt-8 mb-6">
-              ToRead seznam
-            </h3>
-            {toRead.length > 0 ? (
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-4 justify-center">
-                {toRead.map((book) => (
-                  <div
-                    key={book.google_books_id}
-                    className="relative group w-40 h-72 rounded-lg overflow-hidden shadow-md"
+              
+              {/* Kartička knihy s 3D efektem */}
+              <div className="relative w-full h-64 transform transition-transform duration-500 group-hover:scale-105 perspective preserve-3d">
+                {/* Obrázek obálky */}
+                {book.cover_url ? (
+  <img
+    src={book.cover_url}
+    alt={book.title}
+    className="absolute inset-0 w-full h-full object-cover"
+    loading="lazy"
+  />
+) : (
+  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#800020] to-[#aa0030] flex flex-col items-center justify-center p-4">
+    <div className="text-white text-center space-y-4">
+      <div className="text-4xl font-bold">
+        {book.title
+          .split(' ')
+          .map(word => word[0])
+          .slice(0, 3)
+          .join('')
+          .toUpperCase()}
+      </div>
+      <div className="w-16 h-1 mx-auto bg-white/20 rounded-full"></div>
+      <div className="text-sm font-medium text-white/90 line-clamp-3">
+        {book.title}
+      </div>
+      <div className="text-xs text-white/70">
+        {book.author?.split(',')[0] || 'Neznámý autor'}
+      </div>
+    </div>
+  </div>
+)}
+                
+                {/* Gradient překryv pro lepší čitelnost */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-300"></div>
+                
+                {/* Informace o knize */}
+                <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                  <h4 className="text-lg font-bold text-white leading-tight mb-1 line-clamp-2">
+                    <Link
+                      to={`/books/${book.google_books_id}`}
+                      className="hover:text-[#e1c4c4] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {book.title}
+                    </Link>
+                  </h4>
+                  <p className="text-sm text-gray-300 mb-3 line-clamp-1">{book.author}</p>
+                  
+                  {/* Tlačítko pro odebrání */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveBook(book.google_books_id, "favorite");
+                    }}
+                    className="w-full py-2 px-3 rounded-lg bg-[#800020] text-white text-sm font-medium 
+                             hover:bg-[#5a0014] focus:ring-2 focus:ring-[#800020] focus:ring-opacity-50 
+                             transition-all duration-300 transform opacity-0 group-hover:opacity-100 
+                             flex items-center justify-center gap-2"
                   >
-                    {/* Obálka knihy jako pozadí */}
-                    <img
-                      src={book.cover_url}
-                      alt={book.title}
-                      className="absolute inset-0 w-full h-full object-cover transform transition duration-300 group-hover:scale-105"
-                    />
-
-                    {/* Tmavý gradient pro lepší čitelnost */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
-
-                    {/* Text a tlačítko */}
-                    <div className="absolute bottom-0 left-0 w-full p-3 text-white flex flex-col items-center text-center">
-                      <h4 className="text-sm font-semibold leading-tight">
-                        <Link
-                          to={`/books/${book.google_books_id}`}
-                          className="hover:underline"
-                        >
-                          {book.title}
-                        </Link>
-                      </h4>
-                      <p className="text-xs opacity-90">{book.author}</p>
-                      <button
-                        onClick={() =>
-                          handleRemoveBook(book.google_books_id, "toread")
-                        }
-                        className="mt-2 bg-red-600 text-white px-3 py-1 rounded-md text-xs hover:bg-red-700 transition opacity-0 group-hover:opacity-100"
-                      >
-                        Odebrat
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500">Žádné knihy v seznamu ToRead.</p>
-            )}
-          </div>
-        )}
-        {activeTab === "prispevky" && (
-          <>
-            <h2 className="text-2xl font-semibold mb-4">Příspěvky</h2>
-            {posts.length > 0 ? (
-              posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="border p-5 rounded-lg mb-6 shadow-md bg-gray-50 cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => navigate(`/posts/${post.id}`)}
-                >
-                  {/* Profilová fotka a uživatelské jméno */}
-                  <div className="flex items-center mb-4">
-                    <img
-                      src={post.profile_picture || "/default-avatar.png"} // Defaultní avatar, pokud není profilová fotka
-                      alt={post.username}
-                      className="w-10 h-10 rounded-full border border-gray-300 mr-3"
-                    />
-                    <div>
-                      <p className="font-bold text-gray-800">{post.username}</p>
-                      <p className="text-gray-500 text-sm">
-                        {new Date(post.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Obsah příspěvku */}
-                  <h2 className="text-xl font-semibold text-gray-900 leading-tight mb-2">
-                    {post.content}
-                  </h2>
-
-                  {/* Upvotes/Downvotes */}
-                  <div className="flex items-center space-x-4 text-gray-600 mt-3">
-                    <div className="flex items-center space-x-2">
-                      <FaArrowUp className="text-green-500" />
-                      <span>{post.upvotes}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <FaArrowDown className="text-red-500" />
-                      <span>{post.downvotes}</span>
-                    </div>
-                  </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Odebrat
+                  </button>
                 </div>
-              ))
-            ) : (
-              <p>Tento uživatel zatím nemá žádné příspěvky.</p>
-            )}
-          </>
-        )}
-        {activeTab === "recenze" && (
-          <div className="mt-6 border-t border-gray-300 pt-6 space-y-6">
-            {reviews.length > 0 ? (
-              reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="flex items-start gap-4 pb-6 border-b border-gray-300 transition-transform duration-300 hover:scale-105"
-                >
-                  <div
-                    className={`w-14 h-14 flex-shrink-0 rounded-full overflow-hidden border-2 transition-all ${
-                      review.authorProfile
-                        ? "border-[#800020] cursor-pointer hover:shadow-lg"
-                        : "border-gray-500"
-                    }`}
-                    onClick={() => {
-                      if (review.authorProfile)
-                        navigate(`/profile/${review.author_zub}`);
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <p className="text-gray-600 font-medium">Zatím žádné oblíbené knihy.</p>
+          <p className="text-gray-500 text-sm mt-2">Knihy můžeš přidat do oblíbených na jejich detailní stránce.</p>
+        </div>
+      )}
+    </div>
+    
+    {/* Sekce To Read */}
+    <div>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-1 h-8 bg-gradient-to-b from-[#800020] to-[#aa0030] rounded-full"></div>
+        <h3 className="text-2xl font-bold text-[#800020]">Chci přečíst</h3>
+      </div>
+      
+      {toRead.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 justify-center">
+          {toRead.map((book) => (
+            <div
+              key={book.google_books_id}
+              className="relative group rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl"
+            >
+              {/* Stužka ToRead */}
+              <div className="absolute top-0 right-0 z-20 bg-gradient-to-br from-[#800020] to-[#aa0030] text-white text-xs font-bold py-1 px-2 rounded-bl-lg shadow-md">
+                📖 Chci přečíst
+              </div>
+              
+              {/* Kartička knihy s 3D efektem */}
+              <div className="relative w-full h-64 transform transition-transform duration-500 group-hover:scale-105 perspective preserve-3d">
+                {/* Obrázek obálky */}
+                {book.cover_url ? (
+  <img
+    src={book.cover_url}
+    alt={book.title}
+    className="absolute inset-0 w-full h-full object-cover"
+    loading="lazy"
+  />
+) : (
+  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#800020] to-[#aa0030] flex flex-col items-center justify-center p-4">
+    <div className="text-white text-center space-y-4">
+      <div className="text-4xl font-bold">
+        {book.title
+          .split(' ')
+          .map(word => word[0])
+          .slice(0, 3)
+          .join('')
+          .toUpperCase()}
+      </div>
+      <div className="w-16 h-1 mx-auto bg-white/20 rounded-full"></div>
+      <div className="text-sm font-medium text-white/90 line-clamp-3">
+        {book.title}
+      </div>
+      <div className="text-xs text-white/70">
+        {book.author?.split(',')[0] || 'Neznámý autor'}
+      </div>
+    </div>
+  </div>
+)}
+                
+                {/* Gradient překryv pro lepší čitelnost */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-300"></div>
+                
+                {/* Informace o knize */}
+                <div className="absolute bottom-0 left-0 w-full p-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                  <h4 className="text-lg font-bold text-white leading-tight mb-1 line-clamp-2">
+                    <Link
+                      to={`/books/${book.google_books_id}`}
+                      className="hover:text-[#e1c4c4] transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {book.title}
+                    </Link>
+                  </h4>
+                  <p className="text-sm text-gray-300 mb-3 line-clamp-1">{book.author}</p>
+                  
+                  {/* Tlačítko pro odebrání */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveBook(book.google_books_id, "toread");
+                    }}
+                    className="w-full py-2 px-3 rounded-lg bg-[#800020] text-white text-sm font-medium 
+                             hover:bg-[#5a0014] focus:ring-2 focus:ring-[#800020] focus:ring-opacity-50 
+                             transition-all duration-300 transform opacity-0 group-hover:opacity-100 
+                             flex items-center justify-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Odebrat
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <p className="text-gray-600 font-medium">Zatím žádné knihy k přečtení.</p>
+          <p className="text-gray-500 text-sm mt-2">Knihy můžeš přidat do seznamu na jejich detailní stránce.</p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+        {activeTab === "prispevky" && (
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-1 h-8 bg-gradient-to-b from-[#800020] to-[#aa0030] rounded-full"></div>
+      <h3 className="text-2xl font-bold text-[#800020]">Příspěvky</h3>
+    </div>
+    
+    {posts.length > 0 ? (
+      <div className="space-y-5">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]"
+          >
+            {/* Horní lišta příspěvku s barevným akcentem */}
+            <div className="h-1 bg-gradient-to-r from-[#800020] to-[#aa0030]"></div>
+            
+            {/* Obsah příspěvku */}
+            <div className="p-5">
+              {/* Hlavička s autorem */}
+              <div className="flex items-center mb-4">
+                <div className="relative group">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#5a0014]/30 to-[#800020]/30 opacity-0 group-hover:opacity-100 transition-all duration-300 blur-sm scale-110"></div>
+                  <img
+                    src={post.profile_picture || "/default-avatar.png"}
+                    alt={post.username}
+                    className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover group-hover:border-[#800020]/50 transition-all duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author_id}`);
+                    }}
+                  />
+                </div>
+                <div className="ml-3">
+                  <p 
+                    className="font-semibold text-gray-800 hover:text-[#800020] transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/profile/${post.author_id}`);
                     }}
                   >
-                    {review.authorProfile ? (
-                      <img
-                        src={review.authorProfile.profile_picture}
-                        alt={review.authorProfile.username}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full bg-gray-300">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="w-8 h-8 text-gray-600"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M12 12c2.75 0 5-2.25 5-5s-2.25-5-5-5-5 2.25-5 5 2.25 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z" />
-                        </svg>
-                      </div>
-                    )}
+                    {post.username}
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    {new Date(post.created_at).toLocaleDateString("cs-CZ", {
+                      day: "numeric", 
+                      month: "long", 
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Obsah příspěvku */}
+              <div 
+                className="py-3 px-1 cursor-pointer"
+                onClick={() => navigate(`/posts/${post.id}`)}
+              >
+                <p className="text-lg text-gray-800 leading-relaxed">
+                  {post.content}
+                </p>
+              </div>
+              
+              {/* Interakce a metriky */}
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-1 bg-gray-50 px-3 py-1.5 rounded-full">
+                    <FaArrowUp className="text-[#5a9944]" />
+                    <span className="text-sm font-medium text-gray-700">{post.upvotes}</span>
                   </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className="h-5 w-5 text-[#800020]"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M12 17.75l-5.95 3.13 1.14-6.64L2.5 9.37l6.67-.97L12 2.5l2.83 5.9 6.67.97-4.82 4.87 1.14 6.64z" />
-                        </svg>
-                      ))}
-                    </div>
-
-                    <p
-                      className={`text-base font-semibold transition ${
-                        review.authorProfile
-                          ? "text-[#800020] cursor-pointer hover:underline"
-                          : "text-gray-900"
-                      }`}
-                      onClick={() => {
-                        if (review.authorProfile)
-                          navigate(`/profile/${review.author_zub}`);
-                      }}
-                    >
-                      {review.title }
-                    </p>
-
-                    <p className="text-sm text-gray-500">
-                      {new Date(review.created).toLocaleString()}
-                    </p>
-
-                    <p className="text-gray-800 mt-2">{review.text}</p>
+                  <div className="flex items-center space-x-1 bg-gray-50 px-3 py-1.5 rounded-full">
+                    <FaArrowDown className="text-[#994444]" />
+                    <span className="text-sm font-medium text-gray-700">{post.downvotes}</span>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-gray-500">Žádné recenze.</p>
-            )}
+                
+                <button 
+                  className="text-sm text-gray-500 hover:text-[#800020] transition-colors flex items-center space-x-1"
+                  onClick={() => navigate(`/posts/${post.id}`)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                  <span>Zobrazit diskuzi</span>
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+        ))}
+      </div>
+    ) : (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+        </svg>
+        <p className="text-gray-600 font-medium">Zatím žádné příspěvky.</p>
+        <p className="text-gray-500 text-sm mt-2">Uživatel zatím nepřidal žádné příspěvky do komunity.</p>
+      </div>
+    )}
+  </div>
+)}
+       {activeTab === "recenze" && (
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-1 h-8 bg-gradient-to-b from-[#800020] to-[#aa0030] rounded-full"></div>
+      <h3 className="text-2xl font-bold text-[#800020]">Recenze</h3>
+    </div>
+
+    {reviews.length > 0 ? (
+      <div className="space-y-5">
+        {reviews.map((review) => (
+          <div
+            key={review.id}
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
+          >
+            {/* Horní lišta recenze s barevným akcentem */}
+            <div className="h-1 bg-gradient-to-r from-[#800020] to-[#aa0030]"></div>
+            
+            <div className="p-5">
+              {/* Hlavička s hvězdičkovým hodnocením */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`h-5 w-5 ${i < review.rating ? 'text-[#800020]' : 'text-gray-300'}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 17.75l-5.95 3.13 1.14-6.64L2.5 9.37l6.67-.97L12 2.5l2.83 5.9 6.67.97-4.82 4.87 1.14 6.64z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500">
+                  {new Date(review.created).toLocaleDateString("cs-CZ", {
+                    day: "numeric", 
+                    month: "long", 
+                    year: "numeric"
+                  })}
+                </p>
+              </div>
+              
+              {/* Název recenze */}
+              <h4 className="text-xl font-bold text-gray-800 mb-2">{review.title}</h4>
+              
+              {/* Obsah recenze */}
+              <p className="text-gray-700 mb-4 leading-relaxed">{review.text}</p>
+              
+              {/* Autor recenze */}
+              <div className="flex items-center pt-3 border-t border-gray-100">
+                <div 
+                  className={`relative group cursor-pointer`}
+                  onClick={() => {
+                    if (review.authorProfile)
+                      navigate(`/profile/${review.author_zub}`);
+                  }}
+                >
+                  {/* Efekt pod avatarem */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#5a0014]/30 to-[#800020]/30 opacity-0 group-hover:opacity-100 transition-all duration-300 blur-sm scale-110"></div>
+                  
+                  {/* Avatar autora */}
+                  {review.authorProfile ? (
+                    <img
+                      src={review.authorProfile.profile_picture}
+                      alt={review.authorProfile.username}
+                      className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover group-hover:border-[#800020]/50 transition-all duration-300"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 border-2 border-white">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-6 h-6 text-gray-400"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M12 12c2.75 0 5-2.25 5-5s-2.25-5-5-5-5 2.25-5 5 2.25 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="ml-3">
+                  {review.authorProfile ? (
+                    <p 
+                      className="font-semibold text-gray-800 hover:text-[#800020] transition-colors"
+                      onClick={() => navigate(`/profile/${review.author_zub}`)}
+                    >
+                      {user.username}
+                    </p>
+                  ) : (
+                    <p className="font-semibold text-gray-800">{user.username}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Autor recenze</p>
+                </div>
+                
+                {/* Tlačítko pro zobrazení knihy */}
+                {review.book_id && (
+                  <button 
+                    className="ml-auto text-sm text-gray-500 hover:text-[#800020] transition-colors flex items-center space-x-1 px-3 py-1 rounded-full border border-gray-200 hover:border-[#800020]/30"
+                    onClick={() => navigate(`/books/${review.book_id}`)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>Zobrazit knihu</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+        <p className="text-gray-600 font-medium">Žádné recenze.</p>
+        <p className="text-gray-500 text-sm mt-2">Uživatel zatím nepřidal žádné recenze knih.</p>
+      </div>
+    )}
+  </div>
+)}
       </div>
     </section>
   );

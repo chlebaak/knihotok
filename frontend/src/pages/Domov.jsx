@@ -8,8 +8,10 @@ import Search from "../components/search.jsx";
 export default function Domov() {
   return (
     <div>
+      <div className="mx-5">
       <Search />
-      <section className="bg-gray-50">
+      </div>
+      <section className="bg-white">
         <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
           <div className="mr-auto place-self-center lg:col-span-7">
             <h1 className="text-[#67001a] max-w-2xl mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl">
@@ -19,30 +21,58 @@ export default function Domov() {
               Objevte tisíce knih, přečtěte si recenze, hodnoťte své oblíbené
               tituly a sdílejte své literární zážitky s ostatními.
             </p>
-            <a
-              href="#"
-              className="inline-flex items-center justify-center px-5 py-3 mr-3 text-base font-medium text-center text-white rounded-lg bg-orange-600 hover:bg-orange-500 focus:ring-4 focus:ring-orange-300"
-            >
-              Začněte objevovat
-              <svg
-                className="w-5 h-5 ml-2 -mr-1"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </a>
-            <a
-              href="#"
-              className="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-[#4d0013] border border-[#9a0026] rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-100"
-            >
-              Připojte se ke komunitě
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4">
+  <Link
+    to="/books"
+    className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
+             overflow-hidden rounded-xl bg-gradient-to-r from-[#800020] to-[#aa0030]
+             text-white transition-all duration-300
+             hover:shadow-lg hover:shadow-[#800020]/30
+             focus:outline-none focus:ring-2 focus:ring-[#800020] focus:ring-offset-2"
+  >
+    <span className="relative flex items-center">
+      Začněte objevovat
+      <svg
+        className="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fillRule="evenodd"
+          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </span>
+  </Link>
+
+  <Link
+    to="/signup"
+    className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
+             rounded-xl border-2 border-[#800020] text-[#800020]
+             transition-all duration-300 
+             hover:bg-[#800020] hover:text-white
+             hover:shadow-lg hover:shadow-[#800020]/20
+             focus:outline-none focus:ring-2 focus:ring-[#800020] focus:ring-offset-2"
+  >
+    <span className="relative flex items-center group-hover:scale-105 transition-transform duration-300">
+      Připojte se ke komunitě
+      <svg 
+        className="w-5 h-5 ml-2 opacity-0 transform translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+          strokeWidth={2} 
+          d="M17 8l4 4m0 0l-4 4m4-4H3" 
+        />
+      </svg>
+    </span>
+  </Link>
+</div>
           </div>
           <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
             <img src={Book} alt="mockup" />

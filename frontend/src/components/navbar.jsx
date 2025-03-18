@@ -77,10 +77,18 @@ export default function Navbar() {
                     </li>
                     <li>
                       <Link
-                        to={`/messages`}
+                        to={`/friends`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         Přátelé
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to={`/messages`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Zprávy
                       </Link>
                     </li>
                     <li>

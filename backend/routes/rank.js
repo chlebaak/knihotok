@@ -1,8 +1,7 @@
-const express = require('express');
+const express = require("express");
 const db = require("../config/db");
 const router = express.Router();
 
-// Word list v backendu
 const wordList = [
   { word: "1984", hint: "Dystopický román George Orwella." },
   { word: "tolkien", hint: "Autor Pána prstenů." },
@@ -13,18 +12,18 @@ const wordList = [
   { word: "dracula", hint: "Klasický horor od Brama Stokera." },
   { word: "hamlet", hint: "Tragédie od Williama Shakespeara." },
   { word: "potter", hint: "Čaroděj s jizvou na čele." },
-  { word: "verne", hint: "Francouzský autor sci-fi románů." }
+  { word: "verne", hint: "Francouzský autor sci-fi románů." },
 ];
 
-// Funkce pro výběr denního slova podle data
 const getDailyWord = () => {
   const today = new Date();
-  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+  const dayOfYear = Math.floor(
+    (today - new Date(today.getFullYear(), 0, 0)) / 86400000
+  );
   const wordIndex = dayOfYear % wordList.length;
   return wordList[wordIndex];
 };
 
-// Endpoint pro kontrolu, zda uživatel může dnes hrát a získání denního slova
 router.get("/daily-challenge", async (req, res) => {
   const user = req.cookies.user;
 
@@ -33,39 +32,35 @@ router.get("/daily-challenge", async (req, res) => {
   }
 
   try {
-    // Získáme datum poslední hry uživatele
     const result = await db.query(
       "SELECT last_played_at FROM users WHERE id = $1",
       [user.id]
     );
-    
+
     const lastPlayedAt = result.rows[0]?.last_played_at;
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    
+    const today = new Date().toISOString().split("T")[0];
+
     let canPlay = true;
     let nextPlayDate = null;
-    
+
     if (lastPlayedAt) {
-      const lastPlayedDate = new Date(lastPlayedAt).toISOString().split('T')[0];
+      const lastPlayedDate = new Date(lastPlayedAt).toISOString().split("T")[0];
       canPlay = lastPlayedDate !== today;
-      
+
       if (!canPlay) {
-        // Pokud dnes už hrál, nastavíme čas příští hry
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
         nextPlayDate = tomorrow.toISOString();
       }
     }
-    
-    // Vrátíme informace o denní výzvě
+
     const dailyWord = getDailyWord();
-    
+
     res.status(200).json({
       canPlay,
       nextPlayDate,
-      // Vrátíme slovo jen pokud může hrát
-      wordData: canPlay ? dailyWord : null
+      wordData: canPlay ? dailyWord : null,
     });
   } catch (error) {
     console.error("Database error:", error);
@@ -73,7 +68,6 @@ router.get("/daily-challenge", async (req, res) => {
   }
 });
 
-// Záznam prohry (bez přidání bodů)
 router.post("/record-loss", async (req, res) => {
   const user = req.cookies.user;
 
@@ -82,7 +76,6 @@ router.post("/record-loss", async (req, res) => {
   }
 
   try {
-    // Jen aktualizujeme čas poslední hry
     await db.query(
       "UPDATE users SET last_played_at = CURRENT_TIMESTAMP WHERE id = $1",
       [user.id]
@@ -105,10 +98,9 @@ router.post("/add-points", async (req, res) => {
     return res.status(401).json({ error: "Uživatel není přihlášen." });
   }
 
-  const pointsToAdd = 5; // Body za výhru
+  const pointsToAdd = 5;
 
   try {
-    // Přičtení bodů a aktualizace času poslední hry
     const updatedUser = await db.query(
       "UPDATE users SET points = points + $1, last_played_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING points",
       [pointsToAdd, user.id]
@@ -137,7 +129,6 @@ router.get("/profile", async (req, res) => {
   }
 
   try {
-    // Načteme rank a body přihlášeného uživatele
     const userData = await db.query(
       "SELECT username, points, rank FROM users WHERE id = $1",
       [user.id]

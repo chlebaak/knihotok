@@ -7,7 +7,6 @@ const path = require("path");
 const fs = require("fs");
 const router = express.Router();
 
-
 // Helper funkce pro validaci emailu
 const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,22 +96,22 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Neplatný email nebo heslo." });
     }
 
-        // Nastavení cookies s údaji o uživateli
-        res.cookie(
-          "user",
-          {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            created_at: user.created_at,
-          },
-          {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-            maxAge: 3600000, // 1 hodina
-          }
-        );
+    // Nastavení cookies s údaji o uživateli
+    res.cookie(
+      "user",
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at,
+      },
+      {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        maxAge: 3600000,
+      }
+    );
 
     console.log("Uživatel úspěšně přihlášen:", user.email);
     res.status(200).json({ message: "Přihlášení bylo úspěšné." });
@@ -141,10 +140,10 @@ const storage = multer.diskStorage({
       "profilePics"
     );
 
-    console.log(uploadPath); // Ověření výsledné cesty
+    console.log(uploadPath);
 
     if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true }); // Vytvoří složku, pokud neexistuje
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
     cb(null, uploadPath);
   },
@@ -154,7 +153,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Middleware pro kontrolu přihlášení
 const authenticateUser = (req, res, next) => {
   const user = req.cookies.user;
   if (!user) {
@@ -195,7 +193,6 @@ router.put(
     const { username, description } = req.body;
 
     try {
-      // Načtení aktuálních uživatelských dat
       const userResult = await pool.query(
         "SELECT profile_picture FROM users WHERE id = $1",
         [id]
@@ -205,14 +202,12 @@ router.put(
         return res.status(404).json({ error: "Uživatel nenalezen." });
       }
 
-      // Použití aktuálního profilového obrázku, pokud nebyl nahrán nový
       let profilePicturePath = userResult.rows[0].profile_picture;
 
       if (req.file) {
         profilePicturePath = `/src/assets/profilePics/${req.file.filename}`;
       }
 
-      // Kontrola, zda nové uživatelské jméno již neexistuje
       const usernameCheck = await pool.query(
         "SELECT id FROM users WHERE username = $1 AND id != $2",
         [username, id]
@@ -223,7 +218,6 @@ router.put(
           .json({ error: "Uživatelské jméno je již obsazeno." });
       }
 
-      // Aktualizace profilu v databázi
       const { rows } = await pool.query(
         `UPDATE users 
        SET username = $1, description = $2, profile_picture = $3 

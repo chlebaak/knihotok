@@ -9,7 +9,7 @@ export default function Domov() {
   return (
     <div>
       <div className="mx-5">
-      <Search />
+        <Search />
       </div>
       <section className="bg-white">
         <div className="grid max-w-screen-xl px-4 py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-16 lg:grid-cols-12">
@@ -22,57 +22,57 @@ export default function Domov() {
               tituly a sdílejte své literární zážitky s ostatními.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-  <Link
-    to="/LogIn"
-    className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
+              <Link
+                to="/LogIn"
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
              overflow-hidden rounded-xl bg-gradient-to-r from-[#800020] to-[#aa0030]
              text-white transition-all duration-300
              hover:shadow-lg hover:shadow-[#800020]/30
              focus:outline-none focus:ring-2 focus:ring-[#800020] focus:ring-offset-2"
-  >
-    <span className="relative flex items-center">
-      Začněte objevovat
-      <svg
-        className="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path
-          fillRule="evenodd"
-          d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-          clipRule="evenodd"
-        />
-      </svg>
-    </span>
-  </Link>
+              >
+                <span className="relative flex items-center">
+                  Začněte objevovat
+                  <svg
+                    className="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+              </Link>
 
-  <Link
-    to="/SignUp"
-    className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
+              <Link
+                to="/SignUp"
+                className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
              rounded-xl border-2 border-[#800020] text-[#800020]
              transition-all duration-300 
              hover:bg-[#800020] hover:text-white
              hover:shadow-lg hover:shadow-[#800020]/20
              focus:outline-none focus:ring-2 focus:ring-[#800020] focus:ring-offset-2"
-  >
-    <span className="relative flex items-center group-hover:scale-105 transition-transform duration-300">
-      Připojte se ke komunitě
-      <svg 
-        className="w-5 h-5 ml-2 opacity-0 transform translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-          strokeWidth={2} 
-          d="M17 8l4 4m0 0l-4 4m4-4H3" 
-        />
-      </svg>
-    </span>
-  </Link>
-</div>
+              >
+                <span className="relative flex items-center group-hover:scale-105 transition-transform duration-300">
+                  Připojte se ke komunitě
+                  <svg
+                    className="w-5 h-5 ml-2 opacity-0 transform translate-x-[-10px] group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </span>
+              </Link>
+            </div>
           </div>
           <div className="hidden lg:mt-0 lg:col-span-5 lg:flex">
             <img src={Book} alt="mockup" />
@@ -132,7 +132,6 @@ export default function Domov() {
               </svg>
             </a>
           </div>
-          {/* Articles */}
           <div className="grid md:grid-cols-2 gap-8">
             <div
               className="bg-gray-50 border border-gray-200 rounded-lg p-8 md:p-12 bg-cover bg-center"

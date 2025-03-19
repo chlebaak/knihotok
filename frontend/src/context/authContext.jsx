@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
         withCredentials: true,
       }
     );
-    setUser(response.data.user); // Nastavení uživatele
+    setUser(response.data.user); 
     return response.data;
   };
 
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         withCredentials: true,
       }
       );
-      setUser(null); // Vymazání uživatele
+      setUser(null); 
     } catch (error) {
       console.error("Chyba při odhlášení:", error.response?.data || error);
     }

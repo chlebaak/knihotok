@@ -113,27 +113,27 @@ export default function Navbar() {
             </div>
           ) : (
             <Link
-  to="/Login"
-  className="group relative inline-flex items-center justify-center px-5 py-2.5 
+              to="/Login"
+              className="group relative inline-flex items-center justify-center px-5 py-2.5 
             text-sm font-medium tracking-wide text-white 
             bg-gradient-to-r from-[#800020] to-[#aa0030]
             rounded-lg overflow-hidden transition-all duration-300
             hover:shadow-lg hover:shadow-[#800020]/30 
             focus:outline-none focus:ring-2 focus:ring-[#800020] focus:ring-offset-2"
->
-  <span className="relative flex items-center gap-2">
-    <svg 
-      className="w-4 h-4 transform transition-transform duration-300 group-hover:-translate-x-1" 
-      fill="currentColor" 
-      viewBox="0 0 24 24"
-    >
-      <path d="M20 12a1 1 0 0 0-1-1h-7.59l2.3-2.29a1 1 0 1 0-1.42-1.42l-4 4a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l4 4a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42L11.41 13H19a1 1 0 0 0 1-1Z"/>
-    </svg>
-    <span className="relative group-hover:translate-x-1 transition-transform duration-300">
-      Přihlásit se
-    </span>
-  </span>
-</Link>
+            >
+              <span className="relative flex items-center gap-2">
+                <svg
+                  className="w-4 h-4 transform transition-transform duration-300 group-hover:-translate-x-1"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M20 12a1 1 0 0 0-1-1h-7.59l2.3-2.29a1 1 0 1 0-1.42-1.42l-4 4a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l4 4a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.42L11.41 13H19a1 1 0 0 0 1-1Z" />
+                </svg>
+                <span className="relative group-hover:translate-x-1 transition-transform duration-300">
+                  Přihlásit se
+                </span>
+              </span>
+            </Link>
           )}
 
           <button
@@ -182,7 +182,7 @@ export default function Navbar() {
                 Příspěvky
               </Link>
             </li>
-            
+
             <li>
               <Link
                 to="/zebricky"

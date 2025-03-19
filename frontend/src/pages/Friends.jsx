@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import defaultAvatar from "../assets/user_icon.png"; // Import your default avatar
+import defaultAvatar from "../assets/user_icon.png";
 
 const FriendsPage = () => {
   const [friends, setFriends] = useState([]);
@@ -23,14 +23,11 @@ const FriendsPage = () => {
   const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState(null);
 
-
-  // Fetch friends and friend requests on component mount
   useEffect(() => {
     fetchFriends();
     fetchFriendRequests();
   }, []);
 
-  // Handle search input changes with debounce
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -132,17 +129,16 @@ const FriendsPage = () => {
         { receiverId },
         { withCredentials: true }
       );
-      
+
       // Remove user from search results
-      setSearchResults((prev) => 
-        prev.filter((user) => user.id !== receiverId)
-      );
-      
+      setSearchResults((prev) => prev.filter((user) => user.id !== receiverId));
+
       toast.success("Žádost o přátelství byla odeslána");
     } catch (err) {
       console.error("Error sending friend request:", err);
       toast.error(
-        err.response?.data?.error || "Nepodařilo se odeslat žádost o přátelství."
+        err.response?.data?.error ||
+          "Nepodařilo se odeslat žádost o přátelství."
       );
     }
   };
@@ -155,16 +151,17 @@ const FriendsPage = () => {
         {},
         { withCredentials: true }
       );
-      
+
       toast.success("Žádost o přátelství byla přijata");
-      
+
       // Update UI
       fetchFriendRequests();
       fetchFriends();
     } catch (err) {
       console.error("Error accepting friend request:", err);
       toast.error(
-        err.response?.data?.error || "Nepodařilo se přijmout žádost o přátelství."
+        err.response?.data?.error ||
+          "Nepodařilo se přijmout žádost o přátelství."
       );
     }
   };
@@ -176,17 +173,17 @@ const FriendsPage = () => {
         `${import.meta.env.VITE_API_URL_LOCAL}/api/friends/reject/${requestId}`,
         { withCredentials: true }
       );
-      
+
       toast.success("Žádost o přátelství byla odmítnuta");
-      
-      // Update friend requests list
+
       setFriendRequests((prev) =>
         prev.filter((request) => request.id !== requestId)
       );
     } catch (err) {
       console.error("Error rejecting friend request:", err);
       toast.error(
-        err.response?.data?.error || "Nepodařilo se odmítnout žádost o přátelství."
+        err.response?.data?.error ||
+          "Nepodařilo se odmítnout žádost o přátelství."
       );
     }
   };
@@ -198,13 +195,10 @@ const FriendsPage = () => {
         `${import.meta.env.VITE_API_URL_LOCAL}/api/friends/${friendId}`,
         { withCredentials: true }
       );
-      
+
       toast.success("Přátelství bylo odstraněno");
-      
-      // Update friends list
-      setFriends((prev) => 
-        prev.filter((friend) => friend.id !== friendId)
-      );
+
+      setFriends((prev) => prev.filter((friend) => friend.id !== friendId));
     } catch (err) {
       console.error("Error removing friend:", err);
       toast.error(
@@ -220,14 +214,14 @@ const FriendsPage = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (openMenuId && !event.target.closest('.friend-dropdown')) {
+      if (openMenuId && !event.target.closest(".friend-dropdown")) {
         setOpenMenuId(null);
       }
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openMenuId]);
 
@@ -283,7 +277,10 @@ const FriendsPage = () => {
           ) : searchResults.length > 0 ? (
             <ul className="divide-y divide-gray-200">
               {searchResults.map((user) => (
-                <li key={user.id} className="py-4 flex justify-between items-center">
+                <li
+                  key={user.id}
+                  className="py-4 flex justify-between items-center"
+                >
                   <div className="flex items-center space-x-4">
                     <img
                       src={user.profile_picture || defaultAvatar}
@@ -292,7 +289,7 @@ const FriendsPage = () => {
                       onClick={() => navigateToProfile(user.id)}
                     />
                     <div>
-                      <h3 
+                      <h3
                         className="text-lg font-medium text-gray-900 cursor-pointer hover:text-[#800020]"
                         onClick={() => navigateToProfile(user.id)}
                       >
@@ -356,7 +353,10 @@ const FriendsPage = () => {
         ) : friendRequests.length > 0 ? (
           <ul className="divide-y divide-gray-200">
             {friendRequests.map((request) => (
-              <li key={request.id} className="py-4 flex flex-wrap md:flex-nowrap justify-between items-center">
+              <li
+                key={request.id}
+                className="py-4 flex flex-wrap md:flex-nowrap justify-between items-center"
+              >
                 <div className="flex items-center space-x-4 w-full mb-4 md:mb-0 md:w-auto">
                   <img
                     src={request.profile_picture || defaultAvatar}
@@ -365,18 +365,21 @@ const FriendsPage = () => {
                     onClick={() => navigateToProfile(request.id)}
                   />
                   <div>
-                    <h3 
+                    <h3
                       className="text-lg font-medium text-gray-900 cursor-pointer hover:text-[#800020]"
                       onClick={() => navigateToProfile(request.id)}
                     >
                       {request.username}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {new Date(request.request_date).toLocaleDateString("cs-CZ", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {new Date(request.request_date).toLocaleDateString(
+                        "cs-CZ",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        }
+                      )}
                     </p>
                   </div>
                 </div>
@@ -437,56 +440,65 @@ const FriendsPage = () => {
                       onClick={() => navigateToProfile(friend.id)}
                     />
                     <div>
-                      <h3 
+                      <h3
                         className="text-lg font-medium text-gray-900 cursor-pointer hover:text-[#800020]"
                         onClick={() => navigateToProfile(friend.id)}
                       >
                         {friend.username}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        Přátelé od {new Date(friend.friendship_date).toLocaleDateString("cs-CZ", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        Přátelé od{" "}
+                        {new Date(friend.friendship_date).toLocaleDateString(
+                          "cs-CZ",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
                       </p>
                     </div>
                   </div>
                   <div className="relative friend-dropdown">
-  <button 
-    className="text-gray-500 hover:text-[#800020] focus:outline-none p-2 rounded-full hover:bg-gray-100"
-    onClick={(e) => {
-      e.stopPropagation();
-      toggleMenu(friend.id);
-    }}
-    aria-label="Možnosti"
-  >
-    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-    </svg>
-  </button>
-  {openMenuId === friend.id && (
-    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200">
-      <div className="py-1">
-        <a
-          href={`/messages`}
-          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-        >
-          Poslat zprávu
-        </a>
-        <button
-          onClick={() => {
-            removeFriend(friend.id);
-            setOpenMenuId(null);
-          }}
-          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-        >
-          Odebrat z přátel
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+                    <button
+                      className="text-gray-500 hover:text-[#800020] focus:outline-none p-2 rounded-full hover:bg-gray-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleMenu(friend.id);
+                      }}
+                      aria-label="Možnosti"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                      </svg>
+                    </button>
+                    {openMenuId === friend.id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200">
+                        <div className="py-1">
+                          <a
+                            href={`/messages`}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Poslat zprávu
+                          </a>
+                          <button
+                            onClick={() => {
+                              removeFriend(friend.id);
+                              setOpenMenuId(null);
+                            }}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            Odebrat z přátel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -508,7 +520,8 @@ const FriendsPage = () => {
               ></path>
             </svg>
             <p className="mt-2 text-sm text-gray-500">
-              Zatím nemáte žádné přátele. Vyhledejte uživatele a pošlete jim žádost o přátelství.
+              Zatím nemáte žádné přátele. Vyhledejte uživatele a pošlete jim
+              žádost o přátelství.
             </p>
           </div>
         )}

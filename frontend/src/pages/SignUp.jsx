@@ -22,7 +22,7 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       setMessage("Hesla se neshodují!");
       toast.error("Hesla se neshodují!");
@@ -39,23 +39,24 @@ export default function SignUp() {
           password: formData.password,
         }
       );
-      
+
       // Úspěšná registrace
       setMessage(response.data.message || "Registrace byla úspěšná!");
-      toast.success("Registrace proběhla úspěšně! Přesměrováváme na přihlášení...", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      
-      // Počkáme 1,5 sekundy, aby uživatel mohl vidět zprávu o úspěchu, a poté přesměrujeme
+      toast.success(
+        "Registrace proběhla úspěšně! Přesměrováváme na přihlášení...",
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+
       setTimeout(() => {
         navigate("/Login");
       }, 1500);
-      
     } catch (error) {
       const errorMsg = error.response?.data?.error || "Chyba při registraci.";
       setMessage(errorMsg);
@@ -66,23 +67,53 @@ export default function SignUp() {
   };
 
   const getFieldIcon = (field) => {
-    switch(field) {
-      case 'email':
+    switch (field) {
+      case "email":
         return (
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+          <svg
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+            />
           </svg>
         );
-      case 'username':
+      case "username":
         return (
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <svg
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
           </svg>
         );
       default:
         return (
-          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
         );
     }
@@ -90,19 +121,17 @@ export default function SignUp() {
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white via-gray-50 to-[#f8e5e5] p-6">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="relative bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden"
       >
-        {/* Dekorativní prvek */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#800020] to-[#aa0030]"></div>
-        
+
         <div className="p-8">
-          {/* Logo a název */}
-          <motion.a 
-            href="#" 
+          <motion.a
+            href="#"
             className="group flex items-center justify-center mb-8 relative"
             whileHover={{ scale: 1.05 }}
           >
@@ -120,57 +149,84 @@ export default function SignUp() {
           </h1>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {['username', 'email', 'password', 'confirmPassword'].map((field, index) => (
-              <motion.div 
-                key={field} 
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: index * 0.1 }}
-                className="space-y-2"
-              >
-                <label htmlFor={field} className="block text-sm font-medium text-gray-700">
-                  {field === 'confirmPassword' ? 'Potvrzení hesla' : 
-                   field === 'password' ? 'Heslo' :
-                   field === 'username' ? 'Uživatelské jméno' : 'Email'}
-                </label>
-                <div className="relative">
-                  <input
-                    type={field.includes('password') ? 'password' : 'text'}
-                    name={field}
-                    id={field}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm
+            {["username", "email", "password", "confirmPassword"].map(
+              (field, index) => (
+                <motion.div
+                  key={field}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="space-y-2"
+                >
+                  <label
+                    htmlFor={field}
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    {field === "confirmPassword"
+                      ? "Potvrzení hesla"
+                      : field === "password"
+                      ? "Heslo"
+                      : field === "username"
+                      ? "Uživatelské jméno"
+                      : "Email"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={field.includes("password") ? "password" : "text"}
+                      name={field}
+                      id={field}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm
                              focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020] transition-all duration-200"
-                    placeholder={
-                      field === 'email' ? 'vas@email.cz' : 
-                      field === 'username' ? 'Zadejte uživatelské jméno' :
-                      '••••••••'
-                    }
-                    value={formData[field]}
-                    onChange={handleChange}
-                    required
-                  />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    {getFieldIcon(field)}
+                      placeholder={
+                        field === "email"
+                          ? "vas@email.cz"
+                          : field === "username"
+                          ? "Zadejte uživatelské jméno"
+                          : "••••••••"
+                      }
+                      value={formData[field]}
+                      onChange={handleChange}
+                      required
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      {getFieldIcon(field)}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              )
+            )}
 
-            <motion.button 
-              type="submit" 
+            <motion.button
+              type="submit"
               className={`w-full bg-gradient-to-r from-[#800020] to-[#aa0030] text-white font-medium rounded-xl
                        px-6 py-3.5 text-sm shadow-sm hover:shadow-md transform hover:scale-[1.02] 
                        transition-all duration-200 focus:ring-2 focus:ring-[#800020]/50 focus:outline-none
-                       ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                       ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
               whileHover={{ scale: loading ? 1 : 1.02 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
               disabled={loading}
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Registruji...
                 </span>
@@ -180,12 +236,12 @@ export default function SignUp() {
             </motion.button>
 
             {message && !loading && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`p-3 rounded-lg text-sm text-center ${
-                  message.includes("úspěšně") || message.includes("successful") 
-                    ? "bg-green-50 text-green-700 border border-green-200" 
+                  message.includes("úspěšně") || message.includes("successful")
+                    ? "bg-green-50 text-green-700 border border-green-200"
                     : "bg-red-50 text-red-700 border border-red-200"
                 }`}
               >
@@ -203,9 +259,9 @@ export default function SignUp() {
             </div>
 
             <p className="text-sm text-gray-600 text-center">
-              Už máš účet?{' '}
-              <Link 
-                to="/LogIn" 
+              Už máš účet?{" "}
+              <Link
+                to="/LogIn"
                 className="font-medium text-[#800020] hover:text-[#aa0030] transition-colors duration-200"
               >
                 Přihlásit se →

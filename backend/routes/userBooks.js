@@ -85,7 +85,6 @@ router.get("/profile/:id/books", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Získání knih pro uživatele podle list_type
     const { rows } = await req.db.query(
       `SELECT ub.list_type, b.google_books_id, b.title, b.author, b.cover_url 
              FROM user_books ub 

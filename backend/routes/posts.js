@@ -4,32 +4,31 @@ const router = express.Router();
 // Načtení všech příspěvků
 router.get("/", async (req, res) => {
   try {
-    const userId = req.query.userId; // Get userId from query params
-    
+    const userId = req.query.userId;
+
     let query = `
       SELECT 
         posts.*, 
         users.username, 
         users.profile_picture 
     `;
-    
-    // Add user vote info if userId is provided
+
     if (userId) {
       query += `, 
         (SELECT vote_type FROM votes WHERE user_id = $1 AND post_id = posts.id) AS user_vote
       `;
     }
-    
+
     query += `
       FROM posts 
       INNER JOIN users ON posts.user_id = users.id 
       ORDER BY posts.created_at DESC
     `;
-    
-    const posts = userId 
+
+    const posts = userId
       ? await req.db.query(query, [userId])
       : await req.db.query(query);
-      
+
     res.json(posts.rows);
   } catch (error) {
     console.error(error);
@@ -111,17 +110,17 @@ router.get("/:id", async (req, res) => {
         users.username, 
         users.profile_picture 
     `;
-    
+
     if (userId) {
       query += `, 
         (SELECT vote_type FROM votes WHERE user_id = $1 AND post_id = posts.id) AS user_vote
       `;
     }
-    
+
     query += `
       FROM posts 
       INNER JOIN users ON posts.user_id = users.id 
-      WHERE posts.id = $${userId ? '2' : '1'}
+      WHERE posts.id = $${userId ? "2" : "1"}
     `;
 
     const result = userId
@@ -137,8 +136,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Chyba při načítání příspěvku" });
   }
 });
-
-
 
 // Načtení komentářů k příspěvku včetně informací o uživateli
 router.get("/:id/comments", async (req, res) => {
@@ -195,7 +192,6 @@ router.post("/:id/removeVote", async (req, res) => {
   }
 
   try {
-    // Ověřit, zda uživatel hlasoval
     const voteCheck = await req.db.query(
       "SELECT * FROM votes WHERE user_id = $1 AND post_id = $2",
       [user_id, id]
@@ -205,16 +201,13 @@ router.post("/:id/removeVote", async (req, res) => {
       return res.status(400).json({ error: "Uživatel nehlasoval" });
     }
 
-    // Zjistit, jaký hlas byl dán
     const currentVote = voteCheck.rows[0].vote_type;
 
-    // Odstranit hlas z tabulky votes
     await req.db.query(
       "DELETE FROM votes WHERE user_id = $1 AND post_id = $2",
       [user_id, id]
     );
 
-    // Aktualizovat počty hlasů v tabulce posts
     if (currentVote === "upvote") {
       await req.db.query(
         "UPDATE posts SET upvotes = upvotes - 1 WHERE id = $1",
@@ -227,7 +220,6 @@ router.post("/:id/removeVote", async (req, res) => {
       );
     }
 
-    // Vrátit aktualizované počty hlasů
     const updatedPost = await req.db.query(
       "SELECT upvotes, downvotes FROM posts WHERE id = $1",
       [id]
@@ -240,7 +232,6 @@ router.post("/:id/removeVote", async (req, res) => {
   }
 });
 
-// Zvýšení upvotů s přepínáním hlasu
 router.post("/:id/upvote", async (req, res) => {
   const { id } = req.params;
   const { user_id } = req.body;
@@ -257,19 +248,15 @@ router.post("/:id/upvote", async (req, res) => {
 
     if (voteCheck.rows.length > 0) {
       if (voteCheck.rows[0].vote_type === "upvote") {
-        // Instead of returning an error, call the removeVote logic
-        // Delete the vote
         await req.db.query(
           "DELETE FROM votes WHERE user_id = $1 AND post_id = $2",
           [user_id, id]
         );
-        // Decrease upvotes
         await req.db.query(
           "UPDATE posts SET upvotes = upvotes - 1 WHERE id = $1",
           [id]
         );
       } else {
-        // Přepnutí z downvote na upvote
         await req.db.query(
           "UPDATE posts SET downvotes = downvotes - 1, upvotes = upvotes + 1 WHERE id = $1",
           [id]
@@ -280,7 +267,6 @@ router.post("/:id/upvote", async (req, res) => {
         );
       }
     } else {
-      // Přidání upvotu
       await req.db.query(
         "UPDATE posts SET upvotes = upvotes + 1 WHERE id = $1",
         [id]
@@ -302,7 +288,6 @@ router.post("/:id/upvote", async (req, res) => {
   }
 });
 
-// Zvýšení downvotů s přepínáním hlasu
 router.post("/:id/downvote", async (req, res) => {
   const { id } = req.params;
   const { user_id } = req.body;
@@ -319,19 +304,15 @@ router.post("/:id/downvote", async (req, res) => {
 
     if (voteCheck.rows.length > 0) {
       if (voteCheck.rows[0].vote_type === "downvote") {
-        // Instead of returning an error, call the removeVote logic
-        // Delete the vote
         await req.db.query(
           "DELETE FROM votes WHERE user_id = $1 AND post_id = $2",
           [user_id, id]
         );
-        // Decrease downvotes
         await req.db.query(
           "UPDATE posts SET downvotes = downvotes - 1 WHERE id = $1",
           [id]
         );
       } else {
-        // Přepnutí z upvote na downvote
         await req.db.query(
           "UPDATE posts SET upvotes = upvotes - 1, downvotes = downvotes + 1 WHERE id = $1",
           [id]
@@ -342,7 +323,6 @@ router.post("/:id/downvote", async (req, res) => {
         );
       }
     } else {
-      // Přidání downvotu
       await req.db.query(
         "UPDATE posts SET downvotes = downvotes + 1 WHERE id = $1",
         [id]
@@ -364,10 +344,9 @@ router.post("/:id/downvote", async (req, res) => {
   }
 });
 
-// Smazání příspěvku (pouze autor)
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const { user_id } = req.body; // Ujistíme se, že dostáváme ID uživatele
+  const { user_id } = req.body;
 
   if (!user_id) {
     return res.status(401).json({ error: "Uživatel není přihlášen" });
@@ -390,13 +369,10 @@ router.delete("/:id", async (req, res) => {
         .json({ error: "Nemáte oprávnění smazat tento příspěvek" });
     }
 
-    // Smazání komentářů k příspěvku
     await req.db.query("DELETE FROM comments WHERE post_id = $1", [id]);
 
-    // Smazání hlasů pro tento příspěvek
     await req.db.query("DELETE FROM votes WHERE post_id = $1", [id]);
 
-    // Smazání samotného příspěvku
     await req.db.query("DELETE FROM posts WHERE id = $1", [id]);
 
     res.json({ message: "Příspěvek byl úspěšně smazán" });
@@ -406,7 +382,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Smazání komentáře (pouze autor)
 router.delete("/:id/comments", async (req, res) => {
   const { id } = req.params;
   const { user_id } = req.body;
@@ -416,7 +391,6 @@ router.delete("/:id/comments", async (req, res) => {
   }
 
   try {
-    // Ověřit, zda komentář existuje a zda ho napsal přihlášený uživatel
     const commentCheck = await req.db.query(
       "SELECT user_id FROM comments WHERE id = $1",
       [id]

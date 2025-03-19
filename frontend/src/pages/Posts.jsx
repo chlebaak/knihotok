@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaArrowUp, FaArrowDown, FaTrash } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const Posts = () => {
   const [posts, setPosts] = useState([]);
@@ -12,10 +13,12 @@ const Posts = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [user, setUser] = useState(null);
   const [userVotes, setUserVotes] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const maxLength = 200;
 
   useEffect(() => {
+    setIsLoading(true);
     axios
       .get(`${import.meta.env.VITE_API_URL_LOCAL}/api/auth/profile`, {
         withCredentials: true,
@@ -37,14 +40,27 @@ const Posts = () => {
             return acc;
           }, {});
           setUserVotes(votes);
+
+          if (response.data.length > 0) {
+            toast.success("Příspěvky byly úspěšně načteny");
+          }
         } else {
           console.error("API nevrací pole:", response.data);
           setPosts([]);
+          toast.error("Nepodařilo se načíst příspěvky");
         }
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
         setUser(null);
+
+        if (error.response?.status === 401) {
+          toast.info("Pro plný přístup k obsahu se přihlaste");
+        } else {
+          toast.error("Nastala chyba při komunikaci se serverem");
+        }
+
         axios
           .get(`${import.meta.env.VITE_API_URL_LOCAL}/api/posts`, {
             withCredentials: true,
@@ -54,6 +70,11 @@ const Posts = () => {
               setPosts(response.data);
               setFilteredPosts(response.data);
             }
+            setIsLoading(false);
+          })
+          .catch(() => {
+            toast.error("Nepodařilo se načíst příspěvky");
+            setIsLoading(false);
           });
       });
   }, []);
@@ -87,7 +108,10 @@ const Posts = () => {
   }, [searchQuery, sortBy, posts]);
 
   const handleAddPost = async () => {
-    if (!newPost.trim()) return;
+    if (!newPost.trim()) {
+      toast.warning("Příspěvek nemůže být prázdný");
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -106,13 +130,20 @@ const Posts = () => {
 
       setPosts([updatedPost, ...posts]);
       setNewPost("");
+      toast.success("Příspěvek byl úspěšně přidán");
     } catch (error) {
       console.error(error);
+      toast.error(
+        error.response?.data?.error || "Nepodařilo se přidat příspěvek"
+      );
     }
   };
 
   const handleVote = async (id, type) => {
-    if (!user) return alert("Musíte být přihlášeni pro hlasování");
+    if (!user) {
+      toast.info("Musíte být přihlášeni pro hlasování");
+      return;
+    }
 
     try {
       let voteStatus;
@@ -147,24 +178,38 @@ const Posts = () => {
             : post
         )
       );
+
+      // Různé zprávy podle typu hlasování
+      if (voteStatus === "removeVote") {
+        toast.info("Hlas byl odebrán");
+      } else if (voteStatus === "upvote") {
+        toast.success("Přidán pozitivní hlas");
+      } else {
+        toast.info("Přidán negativní hlas");
+      }
     } catch (error) {
       console.error("Chyba při hlasování:", error);
-      alert(error.response?.data?.error || "Chyba při hlasování");
+      toast.error(error.response?.data?.error || "Chyba při hlasování");
     }
   };
 
   const handleDeletePost = async (id) => {
-    try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL_LOCAL}/api/posts/${id}`,
-        {
-          data: { user_id: user.id },
-          withCredentials: true,
-        }
-      );
-      setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
-    } catch (error) {
-      alert(error.response?.data?.error || "Chyba při mazání příspěvku");
+    if (window.confirm("Opravdu chcete smazat tento příspěvek?")) {
+      try {
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL_LOCAL}/api/posts/${id}`,
+          {
+            data: { user_id: user.id },
+            withCredentials: true,
+          }
+        );
+        setPosts((prevPosts) => prevPosts.filter((post) => post.id !== id));
+        toast.success("Příspěvek byl úspěšně smazán");
+      } catch (error) {
+        toast.error(
+          error.response?.data?.error || "Chyba při mazání příspěvku"
+        );
+      }
     }
   };
 
@@ -199,6 +244,45 @@ const Posts = () => {
         </div>
       )}
 
+      {!user && (
+        <div className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-blue-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-blue-800">
+                Pro přidávání a hodnocení příspěvků se prosím přihlaste
+              </p>
+              <p className="mt-1 text-sm text-blue-700">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="font-medium underline hover:text-blue-900"
+                >
+                  Přihlásit se
+                </button>{" "}
+                nebo{" "}
+                <button
+                  onClick={() => navigate("/signup")}
+                  className="font-medium underline hover:text-blue-900"
+                >
+                  Vytvořit účet
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Hledání a filtrace */}
       <div className="mb-8 p-6 bg-white rounded-xl shadow-lg border-l-4 border-[#800020]">
         <h2 className="text-lg font-semibold text-[#800020] mb-4 flex items-center">
@@ -227,12 +311,47 @@ const Posts = () => {
         </div>
       </div>
 
-      {filteredPosts.length === 0 ? (
+      {isLoading ? (
+        // Zobrazení načítání
+        <div className="text-center p-8">
+          <div className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-[#800020] bg-white shadow-sm animate-pulse">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#800020]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Načítání příspěvků...
+          </div>
+        </div>
+      ) : filteredPosts.length === 0 ? (
         <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-600">Žádné příspěvky nenalezeny</p>
+          <div className="mb-4 flex justify-center">
+            <div className="w-16 h-16 bg-[#800020]/10 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-[#800020]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Žádné příspěvky nenalezeny</h3>
+          <p className="text-gray-600 max-w-md mx-auto">
+            {searchQuery ? "Zkuste upravit vyhledávací kritéria" : "Zatím nebyly přidány žádné příspěvky"}
+          </p>
+          {user && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSortBy("newest");
+                document.querySelector('textarea').focus();
+              }}
+              className="mt-6 px-5 py-2.5 bg-[#800020] text-white rounded-lg hover:bg-[#600018] transition-colors focus:outline-none focus:ring-2 focus:ring-[#800020]/50"
+            >
+              {searchQuery ? "Zrušit filtr" : "Vytvořit první příspěvek"}
+            </button>
+          )}
         </div>
       ) : (
+        // Ostatní renderování příspěvků zůstává stejné...
         filteredPosts.map((post) => (
+          // Zbytek kódu pro mapování příspěvků
           <div
             key={post.id}
             className="mb-6 overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-white border border-gray-200"
@@ -251,6 +370,10 @@ const Posts = () => {
                     src={post.profile_picture}
                     alt={post.username}
                     className="w-12 h-12 rounded-full object-cover border-2 border-[#800020]"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${post.username}`;
+                    }}
                   />
                   <div className="absolute inset-0 rounded-full hover:bg-black hover:bg-opacity-10 transition-all duration-200"></div>
                 </div>
@@ -326,6 +449,7 @@ const Posts = () => {
                       ? "Odebrat hlas"
                       : "Líbí se mi"
                   }
+                  disabled={!user}
                 >
                   <FaArrowUp
                     className={
@@ -354,6 +478,7 @@ const Posts = () => {
                       ? "Odebrat hlas"
                       : "Nelíbí se mi"
                   }
+                  disabled={!user}
                 >
                   <FaArrowDown
                     className={

@@ -43,11 +43,16 @@ export default function Footer() {
               Navigace
             </h3>
             <ul className="space-y-2">
-              {["Domů", "Vyhledat knihu", "Žebříčky", "Komunita"].map((item) => (
-                <li key={item}>
-                  <a href={`/${item.toLowerCase().replace(" ", "-")}`} 
+              {[
+                ["Domov", "#"],
+                ["Žebříčky", "zebricky"],
+                ["Příspěvky", "posts"]
+                
+              ].map(([label, path]) => (
+                <li key={path}>
+                  <a href={`/${path}`} 
                      className="text-gray-400 hover:text-[#ff9999] transition-colors duration-200 text-sm">
-                    {item}
+                    {label}
                   </a>
                 </li>
               ))}
@@ -61,10 +66,10 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2">
               {[
-                ["Přihlásit se", "login"],
-                ["Zaregistrovat se", "register"],
-                ["Můj profil", "profile"],
-                ["Nastavení", "settings"]
+                ["Přihlásit se", "LogIn"],
+                ["Zaregistrovat se", "SignUp"],
+                ["Zprávy", "messages"],
+                ["Přátelé", "friends"]
               ].map(([label, path]) => (
                 <li key={path}>
                   <a href={`/${path}`} 
@@ -76,27 +81,7 @@ export default function Footer() {
             </ul>
           </div>
           
-          {/* O projektu */}
-          <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-3">
-              O projektu
-            </h3>
-            <ul className="space-y-2">
-              {[
-                ["O Knihotoku", "about"],
-                ["Kontakt", "contact"],
-                ["Ochrana soukromí", "privacy"],
-                ["Podmínky použití", "terms"]
-              ].map(([label, path]) => (
-                <li key={path}>
-                  <a href={`/${path}`} 
-                     className="text-gray-400 hover:text-[#ff9999] transition-colors duration-200 text-sm">
-                    {label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+
         </div>
       </div>
       

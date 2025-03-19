@@ -48,66 +48,153 @@ const BookDetails = () => {
 
 
 
-const fetchBookDetails = async (userId) => {
-  try {
-    const bookResponse = await axios.get(
-      `${import.meta.env.VITE_API_URL_LOCAL}/api/books/${id}`
-    );
-    setBook(bookResponse.data);
-
-    const title = bookResponse.data.title;
-    if (title) {
-      // Escape special characters in title for the filter
-      const escapedTitle = title.replace(/"/g, '\\"');
-      
-      // Získání recenzí pro danou knihu
-      const reviewsResponse = await pb.collection("reviews").getFullList({
-        filter: `title="${escapedTitle}" && approved=true`,
-      });
-
-      // Simplified user data fetching
-      const reviewsWithProfiles = await Promise.all(
-        reviewsResponse.map(async (review) => {
-          if (review.author_zub) {
-            try {
-                const userResponse = await axios.get(
-                `${import.meta.env.VITE_API_URL_LOCAL}/api/users/${review.author_zub}`,
-                { withCredentials: true }
-                );
-              return {
-                ...review,
-                authorProfile: userResponse.data
-              };
-            } catch (error) {
-              console.warn(`Could not fetch user data for review:`, error);
-              return {
-                ...review,
-                authorProfile: null
-              };
+  const fetchBookDetails = async (userId) => {
+    try {
+      const bookResponse = await axios.get(
+        `${import.meta.env.VITE_API_URL_LOCAL}/api/books/${id}`
+      );
+      setBook(bookResponse.data);
+  
+      const title = bookResponse.data.title;
+      if (title) {
+        console.log("Hledám recenze pro knihu:", title);
+        
+        // Vytvoříme několik možných filtrů pro robustnější vyhledávání
+        let reviewsData = [];
+        
+        try {
+          // 1. Pokus: Přesná shoda (původní způsob)
+          const escapedTitle = title.replace(/"/g, '\\"');
+          console.log("Zkouším přesnou shodu:", `title="${escapedTitle}" && approved=true`);
+          
+          const exactMatchReviews = await pb.collection("reviews").getFullList({
+            filter: `title="${escapedTitle}" && approved=true`,
+          });
+          
+          console.log(`Nalezeno ${exactMatchReviews.length} recenzí při přesné shodě`);
+          
+          if (exactMatchReviews.length > 0) {
+            reviewsData = exactMatchReviews;
+          } else {
+            // 2. Pokus: Pokud je název krátký (jako "1984"), zkus vyhledat s částečnou shodou
+            if (title.length < 10) {
+              console.log("Zkouším částečnou shodu pro krátký název");
+              
+              const partialMatchReviews = await pb.collection("reviews").getFullList({
+                filter: `title~"${escapedTitle}" && approved=true`,
+              });
+              
+              console.log(`Nalezeno ${partialMatchReviews.length} recenzí při částečné shodě`);
+              
+              if (partialMatchReviews.length > 0) {
+                reviewsData = partialMatchReviews;
+              }
+            }
+            
+            // 3. Pokus: Zkus vyhledat recenze podle autora a názvu knihy
+            if (reviewsData.length === 0 && book.author) {
+              const escapedAuthor = book.author.replace(/"/g, '\\"');
+              console.log("Zkouším vyhledávání podle autora:", escapedAuthor);
+              
+              const authorReviews = await pb.collection("reviews").getFullList({
+                filter: `authors~"${escapedAuthor}" && title~"${escapedTitle}" && approved=true`,
+              });
+              
+              console.log(`Nalezeno ${authorReviews.length} recenzí podle autora a názvu`);
+              
+              if (authorReviews.length > 0) {
+                reviewsData = authorReviews;
+              }
+            }
+            
+            // 4. Pokus: Přímé vyhledání podle ID knihy v PocketBase (pokud existuje)
+            if (reviewsData.length === 0 && id) {
+              console.log("Zkouším vyhledávání podle ID knihy:", id);
+              
+              const bookIdReviews = await pb.collection("reviews").getFullList({
+                filter: `book="${id}" && approved=true`,
+              });
+              
+              console.log(`Nalezeno ${bookIdReviews.length} recenzí podle ID knihy`);
+              
+              if (bookIdReviews.length > 0) {
+                reviewsData = bookIdReviews;
+              }
+            }
+            
+            // 5. Pokus: Pro specifický případ "1984"
+            if (reviewsData.length === 0 && (title === "1984" || title.includes("1984"))) {
+              console.log("Zkouším speciální vyhledávání pro knihu 1984");
+              
+              const specialCaseReviews = await pb.collection("reviews").getFullList({
+                filter: `title="1984" || title~"1984" && approved=true`,
+              });
+              
+              console.log(`Nalezeno ${specialCaseReviews.length} recenzí pro specifický případ 1984`);
+              
+              if (specialCaseReviews.length > 0) {
+                reviewsData = specialCaseReviews;
+              }
             }
           }
-          return {
-            ...review,
-            authorProfile: null
-          };
-        })
-      );
-
-      setReviews(reviewsWithProfiles);
-      updateReviewStats(reviewsWithProfiles);
-
-      // Check for user's existing review
-      if (userId) {
-        const existingReview = reviewsWithProfiles.find(
-          (review) => review.author_zub === userId
-        );
-        setUserReview(existingReview || null);
+          
+          // Zpracování nalezených recenzí
+          if (reviewsData.length > 0) {
+            // Simplified user data fetching
+            const reviewsWithProfiles = await Promise.all(
+              reviewsData.map(async (review) => {
+                if (review.author_zub) {
+                  try {
+                    const userResponse = await axios.get(
+                      `${import.meta.env.VITE_API_URL_LOCAL}/api/users/${review.author_zub}`,
+                      { withCredentials: true }
+                    );
+                    return {
+                      ...review,
+                      authorProfile: userResponse.data
+                    };
+                  } catch (error) {
+                    console.warn(`Could not fetch user data for review:`, error);
+                    return {
+                      ...review,
+                      authorProfile: null
+                    };
+                  }
+                }
+                return {
+                  ...review,
+                  authorProfile: null
+                };
+              })
+            );
+  
+            setReviews(reviewsWithProfiles);
+            updateReviewStats(reviewsWithProfiles);
+  
+            // Check for user's existing review
+            if (userId) {
+              const existingReview = reviewsWithProfiles.find(
+                (review) => review.author_zub === userId
+              );
+              setUserReview(existingReview || null);
+            }
+          } else {
+            console.log("Nepodařilo se najít žádné recenze pro knihu", title);
+            setReviews([]);
+            setAverageRating(0);
+            setTotalReviews(0);
+            setRatingsBreakdown([]);
+          }
+        } catch (error) {
+          console.error("Chyba při načítání recenzí:", error);
+          showToastMessage("Nepodařilo se načíst recenze. Zkuste to prosím později.", "danger");
+        }
       }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+      showToastMessage("Nepodařilo se načíst detaily knihy.", "danger");
     }
-  } catch (error) {
-    console.error("Error fetching book details or reviews:", error);
-  }
-};
+  };
 
 
 
@@ -249,35 +336,108 @@ const fetchBookDetails = async (userId) => {
     }
   };
 
-  if (!book)
+  if (!book) {
     return (
-      <div
-        role="status"
-        className="flex items-center justify-center min-h-screen w-full space-x-8 animate-pulse md:flex md:items-center"
-      >
-        <div className="flex items-center justify-center w-1/3 h-48 bg-red-900 rounded sm:w-96">
-          <svg
-            className="w-10 h-10 text-white"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 18"
-          >
-            <path d="M18 0H2a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-5.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm4.376 10.481A1 1 0 0 1 16 15H4a1 1 0 0 1-.895-1.447l3.5-7A1 1 0 0 1 7.468 6a.965.965 0 0 1 .9.5l2.775 4.757 1.546-1.887a1 1 0 0 1 1.618.1l2.541 4a1 1 0 0 1 .028 1.011Z" />
-          </svg>
+      <div className="bg-gray-50 min-h-screen pt-16 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="relative">
+            {/* Dekorativní prvky v pozadí */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-[#800020]/10 to-[#aa0030]/5 rounded-full blur-3xl"></div>
+            <div className="absolute -bottom-5 -left-5 w-32 h-32 bg-gradient-to-tr from-[#800020]/10 to-[#aa0030]/5 rounded-full blur-3xl"></div>
+            
+            {/* Animovaná kniha */}
+            <div className="relative inline-block">
+              <div className="relative w-32 h-44 mx-auto mb-6 animate-pulse">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#800020] to-[#aa0030] rounded-md shadow-xl"></div>
+                <div className="absolute inset-0 bg-white opacity-30 rounded-r-md transform translate-x-2"></div>
+                <div className="absolute left-0 h-full w-[3px] bg-gradient-to-b from-white/40 via-white/10 to-white/40 rounded"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <svg 
+                    className="w-16 h-16 text-white/80 animate-bounce" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h1 className="mt-4 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">
+            <span className="block text-[#800020]">Kniha se načítá</span>
+          </h1>
+          
+          <div className="mt-8 max-w-xl mx-auto">
+            {/* Skeleton loader pro informace o knize */}
+            <div className="space-y-4 animate-pulse">
+              {/* Nadpis knihy */}
+              <div className="h-7 bg-gray-200 rounded-lg w-3/4 mx-auto"></div>
+              
+              {/* Rating */}
+              <div className="flex justify-center space-x-1">
+                {[...Array(5)].map((_, index) => (
+                  <div key={index} className="w-6 h-6 rounded-full bg-gray-200"></div>
+                ))}
+              </div>
+              
+              {/* Text */}
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-5/6 mx-auto"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mx-auto"></div>
+                <div className="h-4 bg-gray-200 rounded w-4/6 mx-auto"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6 mx-auto"></div>
+              </div>
+              
+              {/* Detaily knihy */}
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+              
+              {/* Buttons */}
+              <div className="flex justify-center space-x-4 mt-6">
+                <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-12 flex justify-center">
+            <div className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-[#800020] bg-white shadow-sm animate-pulse">
+              <svg 
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-[#800020]" 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24"
+              >
+                <circle 
+                  className="opacity-25" 
+                  cx="12" 
+                  cy="12" 
+                  r="10" 
+                  stroke="currentColor" 
+                  strokeWidth="4"
+                ></circle>
+                <path 
+                  className="opacity-75" 
+                  fill="currentColor" 
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Načítáme detaily knihy...
+            </div>
+          </div>
         </div>
-        <div className="w-2/3">
-          <h1 className="text-4xl font-bold text-red-900 mb-6">Načítá se</h1>
-          <div className="h-2.5 bg-red-800 rounded-full w-48 mb-4"></div>
-          <div className="h-2 bg-red-800 rounded-full max-w-[480px] mb-2.5"></div>
-          <div className="h-2 bg-red-800 rounded-full mb-2.5"></div>
-          <div className="h-2 bg-red-800 rounded-full max-w-[440px] mb-2.5"></div>
-          <div className="h-2 bg-red-800 rounded-full max-w-[460px] mb-2.5"></div>
-          <div className="h-2 bg-red-800 rounded-full max-w-[360px]"></div>
-        </div>
-        <span className="sr-only">Loading...</span>
       </div>
     );
+  }
 
   const handleAddToList = async (listType) => {
     try {

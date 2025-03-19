@@ -117,7 +117,7 @@ const SearchBooks = () => {
   }, []);
 
   return (
-    <div className="relative max-w-xl mx-auto my-8" ref={searchContainerRef}>
+    <div className="relative max-w-xl mx-auto my-4" ref={searchContainerRef}>
   <div className="relative">
     {/* Ikona lupy */}
     <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">

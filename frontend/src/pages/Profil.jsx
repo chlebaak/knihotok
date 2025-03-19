@@ -137,7 +137,7 @@ export default function Profile() {
         {
           withCredentials: true,
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "multipart/form-daFta",
           },
         }
       );
@@ -216,7 +216,7 @@ export default function Profile() {
         {/* Avatar */}
         <div className="relative">
           <img
-            src={user.profile_picture || defaultProfilePic}
+            src={user.profile_picture || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.username}` || defaultProfilePic}
             alt={`${user.username} profile`}
             className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:border-[#800020]"
           />
@@ -370,7 +370,7 @@ export default function Profile() {
                 
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    Level {user.rank}
+                    Rank {user.rank}
                   </h3>
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center text-sm">
@@ -386,7 +386,7 @@ export default function Profile() {
                       ></div>
                     </div>
                     <span className="text-xs text-gray-500">
-                      {user.points % 100}/100 do dalšího levelu
+                      {user.points % 100}/10 do dalšího levelu
                     </span>
                   </div>
                 </div>

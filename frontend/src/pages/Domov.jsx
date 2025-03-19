@@ -23,7 +23,7 @@ export default function Domov() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
   <Link
-    to="/books"
+    to="/LogIn"
     className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
              overflow-hidden rounded-xl bg-gradient-to-r from-[#800020] to-[#aa0030]
              text-white transition-all duration-300
@@ -47,7 +47,7 @@ export default function Domov() {
   </Link>
 
   <Link
-    to="/signup"
+    to="/SignUp"
     className="group relative inline-flex items-center justify-center px-6 py-3 text-base font-medium
              rounded-xl border-2 border-[#800020] text-[#800020]
              transition-all duration-300 
@@ -89,7 +89,7 @@ export default function Domov() {
             }}
           >
             <Link
-              to="/SignUp"
+              to="/"
               className="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md"
             >
               <svg
@@ -141,7 +141,7 @@ export default function Domov() {
               }}
             >
               <Link
-                to={"/Zebricky"}
+                to="/zebricky"
                 className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md"
               >
                 <svg
@@ -162,11 +162,11 @@ export default function Domov() {
                 Projděte si žebříček knih, které čtenáři hodnotí nejvýše.
                 Najděte svůj další čtenářský skvost.
               </p>
-              <a
-                href="#"
+              <Link
+                to="/zebricky"
                 className="text-[#cd0033] hover:underline font-medium text-lg inline-flex items-center"
               >
-                Čtěte více
+                Zobrazit žebříčky
                 <svg
                   className="w-3.5 h-3.5 ms-2 rtl:rotate-180"
                   aria-hidden="true"
@@ -182,7 +182,7 @@ export default function Domov() {
                     d="M1 5h12m0 0L9 1m4 4L9 9"
                   />
                 </svg>
-              </a>
+              </Link>
             </div>
             <div
               className="bg-gray-50 border border-gray-200 rounded-lg p-8 md:p-12 bg-cover bg-center"

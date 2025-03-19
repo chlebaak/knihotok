@@ -16,6 +16,8 @@ const Zebricky = () => {
           expand: "book", // Předpokládám, že máte vztah na knihu v recenzích
         });
 
+        console.log("Reviews:", reviews[0]); // Vypíše první recenzi pro kontrolu
+
         // Výpočet průměrného hodnocení knih
         const bookRatings = {};
         
@@ -24,14 +26,31 @@ const Zebricky = () => {
           const title = review.title;
           const rating = review.rating;
           
+          // Zajistíme, že author je vždy string
+          let author = "Neznámý autor";
+          
+          if (review.expand?.book?.author) {
+            author = review.expand.book.author;
+          } else if (review.authors) {
+            author = review.authors;
+          }
+          
+          // Ujistíme se, že author je string
+          if (typeof author !== 'string') {
+            try {
+              author = String(author); // Pokus o konverzi na string
+            } catch (e) {
+              author = "Neznámý autor"; // Fallback, pokud konverze selže
+            }
+          }
+          
           if (!bookRatings[title]) {
             bookRatings[title] = { 
               total: 0, 
               count: 0,
               bookId: review.expand?.book?.id || null,
-              author: review.expand?.book?.author || "Neznámý autor",
+              author: author, // Nyní by to měl být string
               cover: review.expand?.book?.cover || null,
-              // Další detaily, které jsou k dispozici přímo z databáze
               isbn: review.expand?.book?.isbn || null,
             };
           }
@@ -45,7 +64,7 @@ const Zebricky = () => {
           .map(([title, data]) => ({
             id: data.bookId || `book-${title.replace(/\s+/g, '-').toLowerCase()}`,
             title,
-            author: data.author,
+            author: data.author, // Toto by nyní mělo obsahovat správnou hodnotu z "authors"
             cover: data.cover,
             averageRating: data.total / data.count,
             reviewCount: data.count,
@@ -54,6 +73,7 @@ const Zebricky = () => {
           .sort((a, b) => b.averageRating - a.averageRating)
           .slice(0, 10); // Omezení na pouze top 10
 
+        console.log("Zpracované knihy:", sortedBooks); // Pro kontrolu finálních dat
         setTopBooks(sortedBooks);
       } catch (error) {
         console.error("Chyba při načítání žebříčku:", error);
@@ -248,20 +268,24 @@ const Zebricky = () => {
                   />
                 ) : (
                   <div className="w-24 h-36 flex items-center justify-center rounded-md shadow-md bg-gradient-to-br from-[#800020]/80 to-[#800020] text-white">
-                    <div className="text-center px-2">
-                      <div className="text-2xl font-bold">
-                        {book.title
-                          .split(' ')
-                          .map(word => word[0])
-                          .slice(0, 3)
-                          .join('')
-                          .toUpperCase()}
-                      </div>
-                      <div className="mt-1 text-xs opacity-80 font-medium border-t border-white/30 pt-1">
-                        {book.author?.split(',')[0] || "Kniha"}
-                      </div>
-                    </div>
-                  </div>
+  <div className="text-center px-2">
+    <div className="text-2xl font-bold">
+      {book.title
+        .split(' ')
+        .map(word => word[0])
+        .slice(0, 3)
+        .join('')
+        .toUpperCase()}
+    </div>
+    <div className="mt-1 text-xs opacity-80 font-medium border-t border-white/30 pt-1">
+      {typeof book.author === 'string' 
+        ? book.author.split(',')[0] 
+        : typeof book.author === 'object' && book.author !== null
+          ? JSON.stringify(book.author).substring(0, 15)
+          : "Kniha"}
+    </div>
+  </div>
+</div>
                 )}
               </div>
 
@@ -271,9 +295,13 @@ const Zebricky = () => {
                   {book.title}
                 </h2>
                 <p className="text-gray-700 flex items-center gap-2 mt-1">
-                  <AiOutlineUser className="text-[#800020]" size={18} /> 
-                  <span>{book.author}</span>
-                </p>
+  <AiOutlineUser className="text-[#800020]" size={18} /> 
+  <span>
+    {typeof book.author === 'string'
+      ? book.author
+      : "Neznámý autor"}
+  </span>
+</p>
                 <div className="mt-2 flex items-center">
                   <div className="flex items-center bg-[#800020]/10 rounded-full px-3 py-1">
                     <AiOutlineStar className="text-[#800020] mr-1" size={18} />

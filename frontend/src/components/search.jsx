@@ -18,15 +18,17 @@ const SearchBooks = () => {
       setBooks([]);
       return;
     }
-
+  
+    console.log(`Searching for: "${query}" (type: ${type})`);
+  
     // Cancel previous request if exists
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-
+  
     // Create new abort controller
     abortControllerRef.current = new AbortController();
-
+  
     setIsLoading(true);
     try {
       const response = await axios.get(
@@ -35,14 +37,27 @@ const SearchBooks = () => {
           params: { 
             query: query.trim(),
             type,
-            limit: 5 
+            limit: 10
+          },
+          headers: {
+            'Accept-Language': 'cs,en;q=0.9'
           },
           signal: abortControllerRef.current.signal
         }
       );
-      setBooks(response.data);
+      
+      console.log(`Received ${response.data.length} results`);
+      
+      if (response.data.length === 0) {
+        setBooks([]);
+      } else {
+        setBooks(response.data.slice(0, 5));
+      }
+      
     } catch (error) {
-      if (!axios.isCancel(error)) {
+      if (axios.isCancel(error)) {
+        console.log('Request was cancelled');
+      } else {
         console.error("Error fetching books:", error);
         setBooks([]);
       }

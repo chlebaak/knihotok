@@ -31,40 +31,66 @@ router.get("/search", async (req, res) => {
       ? `inauthor:"${query.trim()}"` 
       : `intitle:"${query.trim()}"`;
 
+    // Jednodušší přístup - jeden požadavek bez jazykového omezení, ale s preferencí
     const response = await axios.get(GOOGLE_BOOKS_API, {
       params: {
         q: formattedQuery,
-        maxResults: Math.min(limit, 20), // Limit maximum results
+        maxResults: Math.min(limit * 2, 30), // Získat více výsledků pro filtrování
         orderBy: "relevance",
         key: process.env.GOOGLE_BOOKS_API_KEY,
-        fields: 'items(id,volumeInfo(title,authors,description,imageLinks/thumbnail,industryIdentifiers,publishedDate,pageCount))', // Request only needed fields
+        fields: 'items(id,volumeInfo(title,authors,description,imageLinks/thumbnail,industryIdentifiers,publishedDate,pageCount,language))',
       },
-      timeout: 5000 // 5 second timeout
+      headers: {
+        'Accept-Language': 'cs,en;q=0.9' // Preferovat češtinu, potom angličtinu
+      },
+      timeout: 8000
     });
 
-    if (!response.data.items) {
-      const emptyResult = [];
-      searchCache.set(cacheKey, emptyResult);
-      return res.json(emptyResult);
+    // Zpracování výsledků
+    if (!response.data.items || response.data.items.length === 0) {
+      console.log('No books found for query:', query);
+      return res.json([]);
     }
 
-    const books = response.data.items.map((book) => ({
-      id: book.id,
-      title: book.volumeInfo.title || "Název není k dispozici",
-      author: book.volumeInfo.authors?.join(", ") || "Neznámý autor",
-      description: book.volumeInfo.description?.slice(0, 200) || "Popis není k dispozici.",
-      cover: book.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || "",
-      isbn: book.volumeInfo.industryIdentifiers?.find(id => id.type === "ISBN_13")?.identifier || "N/A",
-      publishedDate: book.volumeInfo.publishedDate?.split('-')[0] || "Neznámý rok vydání",
-      pageCount: book.volumeInfo.pageCount || "N/A",
-    }));
+    // Mapování a filtrace výsledků
+    const books = response.data.items
+      .map(book => ({
+        id: book.id,
+        title: book.volumeInfo.title || "Název není k dispozici",
+        author: book.volumeInfo.authors?.join(", ") || "Neznámý autor",
+        description: book.volumeInfo.description?.slice(0, 200) || "Popis není k dispozici.",
+        cover: book.volumeInfo.imageLinks?.thumbnail?.replace('http:', 'https:') || "",
+        isbn: book.volumeInfo.industryIdentifiers?.find(id => id.type === "ISBN_13")?.identifier || "N/A",
+        publishedDate: book.volumeInfo.publishedDate?.split('-')[0] || "Neznámý rok vydání",
+        pageCount: book.volumeInfo.pageCount || "N/A",
+        language: book.volumeInfo.language || "unknown"
+      }))
+      // Řazení výsledků - prioritně české, pak anglické
+      .sort((a, b) => {
+        // Prioritizovat české knihy
+        if (a.language === 'cs' && b.language !== 'cs') return -1;
+        if (a.language !== 'cs' && b.language === 'cs') return 1;
+        
+        // Potom anglické knihy
+        if (a.language === 'en' && b.language !== 'en') return -1;
+        if (a.language !== 'en' && b.language === 'en') return 1;
+        
+        return 0;
+      })
+      // Omezit počet výsledků
+      .slice(0, limit);
 
+    // Logování pro debugování
+    console.log(`Found ${books.length} books for query "${query}" (type: ${type})`);
+    
     // Cache the results
     searchCache.set(cacheKey, books);
     res.json(books);
 
   } catch (error) {
     console.error("Search API Error:", error.message);
+    console.error("Full error:", error);
+    
     res.status(error.response?.status || 500).json({ 
       message: "Chyba při vyhledávání knih",
       error: error.message 

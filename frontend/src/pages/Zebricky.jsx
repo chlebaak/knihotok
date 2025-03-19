@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { AiOutlineStar, AiOutlineUser } from "react-icons/ai";
 import pb from "../lib/pocketbase.js";
-
-// Import from environment variables
-const GOOGLE_BOOKS_API = import.meta.env.VITE_GOOGLE_BOOKS_API;
-const API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
 
 const Zebricky = () => {
   const [topBooks, setTopBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -32,10 +28,11 @@ const Zebricky = () => {
             bookRatings[title] = { 
               total: 0, 
               count: 0,
-              // Pokud máte v recenzi odkaz na knihu, můžete přidat další údaje
               bookId: review.expand?.book?.id || null,
-              author: review.expand?.book?.author || null,
-              googleBookId: review.expand?.book?.googleBookId || null,
+              author: review.expand?.book?.author || "Neznámý autor",
+              cover: review.expand?.book?.cover || null,
+              // Další detaily, které jsou k dispozici přímo z databáze
+              isbn: review.expand?.book?.isbn || null,
             };
           }
           
@@ -46,117 +43,49 @@ const Zebricky = () => {
         // Vytvoření setříděného seznamu knih
         const sortedBooks = Object.entries(bookRatings)
           .map(([title, data]) => ({
+            id: data.bookId || `book-${title.replace(/\s+/g, '-').toLowerCase()}`,
             title,
-            averageRating: data.total / data.count,
-            bookId: data.bookId,
             author: data.author,
-            googleBookId: data.googleBookId,
+            cover: data.cover,
+            averageRating: data.total / data.count,
+            reviewCount: data.count,
+            isbn: data.isbn
           }))
           .sort((a, b) => b.averageRating - a.averageRating)
           .slice(0, 10); // Omezení na pouze top 10
 
-        // Funkce pro lepší porovnání názvů knih
-        const normalizeTitleForComparison = (title) => {
-          return title
-            .toLowerCase()
-            .replace(/[^\w\s]/g, '') // Odstranění interpunkce
-            .replace(/\s+/g, ' ')    // Normalizace mezer
-            .trim();
-        };
-
-        const fetchBookDetailsBatch = async (books) => {
-          const finalBooks = [];
-          const batchSize = 3; // Snížení velikosti dávky pro lepší stabilitu
-          const batches = [];
-
-          for (let i = 0; i < books.length; i += batchSize) {
-            batches.push(books.slice(i, i + batchSize));
-          }
-
-          for (const batch of batches) {
-            const requests = batch.map((book) => {
-              // Pokud již máme ID knihy v Google Books, použijeme ho přímo
-              if (book.googleBookId) {
-                return fetch(`https://www.googleapis.com/books/v1/volumes/${book.googleBookId}?key=${API_KEY}`)
-                  .then(res => res.json())
-                  .then(data => {
-                    if (data.id && data.volumeInfo) {
-                      return {
-                        title: book.title,
-                        averageRating: book.averageRating.toFixed(2),
-                        author: data.volumeInfo.authors?.join(", ") || book.author || "Neznámý autor",
-                        cover: data.volumeInfo.imageLinks?.thumbnail || null,
-                        googleBookId: data.id,
-                      };
-                    }
-                    return null;
-                  })
-                  .catch(error => {
-                    console.warn(`❌ Chyba při načítání knihy podle ID ${book.googleBookId}:`, error);
-                    return null;
-                  });
-              }
-              
-              // Jinak vyhledáme knihu podle názvu a autora
-              const searchQuery = book.author 
-                ? `intitle:"${encodeURIComponent(book.title)}" inauthor:"${encodeURIComponent(book.author)}"`
-                : `intitle:"${encodeURIComponent(book.title)}"`;
-                
-              return fetch(`${GOOGLE_BOOKS_API}${searchQuery}&maxResults=5&key=${API_KEY}`)
-                .then(res => res.json())
-                .then(data => {
-                  const items = data.items || [];
-                  const normalizedBookTitle = normalizeTitleForComparison(book.title);
-                  
-                  // Najdeme nejlepší shodu podle názvu
-                  const bestMatch = items.find(item => {
-                    // Kontrola, zda má kniha obálku
-                    if (!item.volumeInfo.imageLinks?.thumbnail) return false;
-                    
-                    const itemTitle = item.volumeInfo.title || "";
-                    const normalizedItemTitle = normalizeTitleForComparison(itemTitle);
-                    
-                    // Pokud názvy přesně odpovídají, je to dobrá shoda
-                    return normalizedItemTitle === normalizedBookTitle;
-                  }) || items[0]; // Pokud nenajdeme přesnou shodu, vezmeme první výsledek
-                  
-                  if (!bestMatch) return null;
-
-                  return {
-                    title: book.title,
-                    averageRating: book.averageRating.toFixed(2),
-                    author: bestMatch.volumeInfo.authors?.join(", ") || book.author || "Neznámý autor",
-                    cover: bestMatch.volumeInfo.imageLinks?.thumbnail || null,
-                    googleBookId: bestMatch.id,
-                  };
-                })
-                .catch(error => {
-                  console.warn(`❌ Chyba při vyhledávání knihy "${book.title}":`, error);
-                  return null;
-                });
-            });
-
-            // Zpracování výsledků dávky
-            const results = await Promise.allSettled(requests);
-            const validResults = results
-              .filter(r => r.status === "fulfilled" && r.value)
-              .map(r => r.value);
-              
-            finalBooks.push(...validResults);
-            
-            // Krátké zpoždění mezi dávkami pro omezení rate-limitingu API
-            if (batches.length > 1) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-
-          return finalBooks;
-        };
-
-        const finalBooks = await fetchBookDetailsBatch(sortedBooks);
-        setTopBooks(finalBooks);
+        setTopBooks(sortedBooks);
       } catch (error) {
         console.error("Chyba při načítání žebříčku:", error);
+        setError("Nepodařilo se načíst žebříček knih. Zkuste to prosím později.");
+        
+        // Fallback data pro případ chyby
+        setTopBooks([
+          {
+            id: "fallback1",
+            title: "Pýcha a předsudek",
+            author: "Jane Austen",
+            cover: null,
+            averageRating: 4.5,
+            reviewCount: 42
+          },
+          {
+            id: "fallback2",
+            title: "1984",
+            author: "George Orwell",
+            cover: null,
+            averageRating: 4.3,
+            reviewCount: 36
+          },
+          {
+            id: "fallback3",
+            title: "Hobit",
+            author: "J.R.R. Tolkien",
+            cover: null,
+            averageRating: 4.2,
+            reviewCount: 29
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -207,100 +136,179 @@ const Zebricky = () => {
 
   return (
     <div className="py-12 px-4 max-w-5xl mx-auto">
-  {/* Header with decorative elements */}
-  <div className="mb-10 text-center">
-    <h1 className="text-4xl md:text-5xl font-bold mb-3 text-[#800020] relative inline-block">
-      <span className="relative z-10">Top 10 Nejlépe Hodnocených Knih</span>
-      <div className="absolute bottom-1 left-0 w-full h-3 bg-[#800020]/10 -z-0"></div>
-    </h1>
-    <p className="text-gray-600 max-w-2xl mx-auto">
-      Nejoblíbenější knihy mezi čtenáři Knihotoku podle průměrného hodnocení.
-    </p>
+      {/* Header with decorative elements */}
+      <div className="mb-14 text-center relative">
+  {/* Moderní geometrické tvary v pozadí */}
+  <div className="absolute inset-0 -z-10 overflow-hidden">
+    <div className="absolute top-10 left-1/3 w-64 h-64 bg-gradient-to-r from-purple-200 to-pink-200 opacity-20 rounded-full blur-3xl"></div>
+    <div className="absolute -top-10 right-1/3 w-80 h-80 bg-gradient-to-r from-yellow-100 to-amber-100 opacity-20 rounded-full blur-3xl"></div>
+    <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-full h-40 bg-gradient-to-r from-burgundy-50 to-burgundy-100 opacity-20 rounded-full blur-3xl"></div>
+  </div>
+  
+  {/* Vizuální designové prvky - minimalistické ikony */}
+  <div className="hidden md:flex absolute justify-between w-full top-0 opacity-10">
+    <div className="flex gap-2 transform -translate-y-4">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="w-1.5 h-16 bg-burgundy-600 rounded-full" style={{ height: `${(i+2) * 16}px` }}></div>
+      ))}
+    </div>
+    <div className="flex gap-2 transform translate-y-4">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="w-1.5 h-16 bg-fourth rounded-full" style={{ height: `${(3-i) * 16}px` }}></div>
+      ))}
+    </div>
   </div>
 
-  {/* Leaderboard */}
-  <ol className="space-y-5">
-    {topBooks.map((book, index) => (
-      <li key={book.googleBookId}>
-        <Link
-          to={`/books/${book.googleBookId}`}
-          className="group block bg-white border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden flex flex-row items-center p-0"
-        >
-          {/* Rank number with gradient background */}
-          <div className={`
-            flex-shrink-0 w-16 h-full flex items-center justify-center py-6 
-            ${index === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-500' : 
-              index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400' : 
-              index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700' : 
-              'bg-gradient-to-br from-gray-100 to-gray-200'}
-          `}>
-            <span className={`
-              text-3xl font-bold ${index < 3 ? 'text-white' : 'text-[#800020]'} 
-              drop-shadow-md group-hover:scale-110 transition-transform
-            `}>
-              {index + 1}
-            </span>
-          </div>
+  {/* Moderní badge jako akcent před nadpisem */}
+  <div className="inline-flex items-center justify-center px-3 py-1 mb-6 rounded-full bg-gradient-to-r from-burgundy-100 to-burgundy-200 text-burgundy-800 text-xs font-medium tracking-wide">
+    <span className="inline-block w-2 h-2 rounded-full bg-fourth mr-2"></span>
+    ŽEBŘÍČEK KNIH
+  </div>
 
-          {/* Book cover with shadow effect or fallback cover if no image */}
-<div className="p-4 flex-shrink-0 relative">
-  {book.cover ? (
-    <img
-      src={book.cover}
-      alt={book.title}
-      className="w-24 h-36 object-cover rounded-md shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
-    />
-  ) : (
-    <div className="w-24 h-36 flex items-center justify-center rounded-md shadow-md bg-gradient-to-br from-[#800020]/80 to-[#800020] text-white group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
-      <div className="text-center px-2">
-        <div className="text-2xl font-bold">
-          {book.title
-            .split(' ')
-            .map(word => word[0])
-            .slice(0, 3)
-            .join('')
-            .toUpperCase()}
+  {/* Hlavní nadpis - jednodušší, ale výraznější */}
+  <h1 className="relative text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight tracking-tight">
+    <span className="relative">
+      Top 10 Nejlépe <span className="text-[#800020]">Hodnocených</span> Knih
+      <div className="absolute h-3 w-full left-0 -bottom-1 bg-fourth opacity-30 -rotate-1"></div>
+    </span>
+  </h1>
+
+  {/* Modernější zobrazení hvězdiček - interaktivnější vzhled */}
+  <div className="flex justify-center items-center gap-1 mb-6">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="relative group">
+        <div className="absolute inset-0 bg-fourth rounded-full blur-sm opacity-20 group-hover:opacity-40 transition-opacity"></div>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          className="h-6 w-6 text-fourth transform group-hover:scale-110 transition-transform"
+          viewBox="0 0 20 20" 
+          fill="currentColor"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      </div>
+    ))}
+  </div>
+
+  {/* Popis s trendovou typografií */}
+  <p className="font-light text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed mb-8">
+    Nejoblíbenější knihy mezi čtenáři Knihotoku podle průměrného hodnocení.
+    <span className="inline-block h-1 w-8 bg-burgundy-200 ml-2 rounded-full align-middle"></span>
+  </p>
+  
+  {/* Modernizovaná chybová hláška s neuromorfním designem */}
+  {error && (
+    <div className="mt-6 relative bg-white border border-red-100 p-5 rounded-2xl shadow-sm max-w-xl mx-auto overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-white to-red-50 opacity-80"></div>
+      <div className="relative flex items-start gap-4">
+        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-red-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
         </div>
-        <div className="mt-1 text-xs opacity-80 font-medium border-t border-white/30 pt-1">
-          {book.author?.split(',')[0] || "Kniha"}
+        <div>
+          <h3 className="text-red-800 font-medium tracking-wide mb-1">Nepodařilo se načíst data</h3>
+          <p className="text-red-600 text-sm">{error}</p>
+          <p className="mt-2 text-red-500 text-xs font-medium uppercase tracking-wider">Zobrazujeme záložní data</p>
         </div>
       </div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-300 to-red-500"></div>
     </div>
   )}
 </div>
 
-          {/* Book info with improved spacing */}
-          <div className="flex flex-col p-4 flex-grow">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-900 group-hover:text-[#800020] transition-colors">
-              {book.title}
-            </h2>
-            <p className="text-gray-700 flex items-center gap-2 mt-1">
-              <AiOutlineUser className="text-[#800020]" size={18} /> 
-              <span>{book.author}</span>
-            </p>
-            <div className="mt-2 flex items-center">
-              <div className="flex items-center bg-[#800020]/10 rounded-full px-3 py-1">
-                <AiOutlineStar className="text-[#800020] mr-1" size={18} />
-                <span className="font-semibold text-[#800020]">{book.averageRating}</span>
-                <span className="text-gray-600 text-sm">/5</span>
+      {/* Leaderboard */}
+      <ol className="space-y-5">
+        {topBooks.map((book, index) => (
+          <li key={book.id}>
+            <div className="bg-white border border-gray-200 shadow-md transition-all duration-300 rounded-xl overflow-hidden flex flex-row items-center p-0">
+              {/* Rank number with gradient background */}
+              <div className={`
+                flex-shrink-0 w-16 h-full flex items-center justify-center py-6 
+                ${index === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-500' : 
+                  index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400' : 
+                  index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700' : 
+                  'bg-gradient-to-br from-gray-100 to-gray-200'}
+              `}>
+                <span className={`
+                  text-3xl font-bold ${index < 3 ? 'text-white' : 'text-[#800020]'} 
+                  drop-shadow-md
+                `}>
+                  {index + 1}
+                </span>
               </div>
-              <span className="ml-2 text-sm text-gray-500">
-                podle čtenářů
-              </span>
-            </div>
-          </div>
 
-          {/* Arrow indicator for hover state */}
-          <div className="pr-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </div>
-        </Link>
-      </li>
-    ))}
-  </ol>
-</div>
+              {/* Book cover with shadow effect or fallback cover if no image */}
+              <div className="p-4 flex-shrink-0 relative">
+                {book.cover ? (
+                  <img
+                    src={book.cover}
+                    alt={book.title}
+                    className="w-24 h-36 object-cover rounded-md shadow-md"
+                  />
+                ) : (
+                  <div className="w-24 h-36 flex items-center justify-center rounded-md shadow-md bg-gradient-to-br from-[#800020]/80 to-[#800020] text-white">
+                    <div className="text-center px-2">
+                      <div className="text-2xl font-bold">
+                        {book.title
+                          .split(' ')
+                          .map(word => word[0])
+                          .slice(0, 3)
+                          .join('')
+                          .toUpperCase()}
+                      </div>
+                      <div className="mt-1 text-xs opacity-80 font-medium border-t border-white/30 pt-1">
+                        {book.author?.split(',')[0] || "Kniha"}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Book info with improved spacing */}
+              <div className="flex flex-col p-4 flex-grow">
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+                  {book.title}
+                </h2>
+                <p className="text-gray-700 flex items-center gap-2 mt-1">
+                  <AiOutlineUser className="text-[#800020]" size={18} /> 
+                  <span>{book.author}</span>
+                </p>
+                <div className="mt-2 flex items-center">
+                  <div className="flex items-center bg-[#800020]/10 rounded-full px-3 py-1">
+                    <AiOutlineStar className="text-[#800020] mr-1" size={18} />
+                    <span className="font-semibold text-[#800020]">{book.averageRating.toFixed(2)}</span>
+                    <span className="text-gray-600 text-sm">/5</span>
+                  </div>
+                  <span className="ml-2 text-sm text-gray-500">
+                    podle {book.reviewCount} {book.reviewCount === 1 ? 'recenze' : 
+                            book.reviewCount < 5 ? 'recenzí' : 'recenzí'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+      
+      {topBooks.length === 0 && !loading && (
+        <div className="text-center py-10">
+          <div className="text-5xl mb-4">📚</div>
+          <h3 className="text-2xl font-medium text-gray-700 mb-2">Zatím žádné hodnocené knihy</h3>
+          <p className="text-gray-500">
+            Až čtenáři ohodnotí více knih, objeví se zde žebříček těch nejlepších.
+          </p>
+          {error && (
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-[#800020] text-white rounded-lg hover:bg-[#600018] transition-colors"
+            >
+              Zkusit znovu načíst
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

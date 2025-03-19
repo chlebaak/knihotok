@@ -736,6 +736,10 @@ const BookDetails = () => {
                         className="w-5 h-4 ml-1"
                       />
                     </p>
+                    <p className="flex items-center text-gray-700">
+                      <span className="font-medium mr-2">ISBN: </span>
+                      {book.isbn}
+                    </p>
                   </div>
                 </div>
 
